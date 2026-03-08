@@ -7,11 +7,11 @@
     "frame": {
         "version": "1",
         "name": "DonaCuadratico",
-        "iconUrl": "https://DonaCuadratico.xyz/icon.png",
-        "homeUrl": "https://DonaCuadratico.xyz",
-        "imageUrl": "https://DonaCuadratico.xyz/api/og",
-        "buttonTitle": "Enviar Tip",
-        "splashImageUrl": "https://DonaCuadratico.xyz/splash.png",
+        "iconUrl": "https://donacuadratico-web.vercel.app/icon.png",
+        "homeUrl": "https://donacuadratico-web.vercel.app",
+        "imageUrl": "https://donacuadratico-web.vercel.app/api/og",
+        "buttonTitle": "Enviar donación",
+        "splashImageUrl": "https://donacuadratico-web.vercel.app/splash.png",
         "splashBackgroundColor": "#0a0a0f"
     }
 }
