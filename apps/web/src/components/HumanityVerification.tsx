@@ -1,17 +1,17 @@
 "use client";
 
 import { useAccount, useSignMessage } from "wagmi";
-import { PassportScoreWidget, usePassportScore } from "@human.tech/passport-embed";
+import { PassportScoreWidget, usePassportScore, DarkTheme } from "@human.tech/passport-embed";
 import { useEffect, useState } from "react";
 
 export function HumanityVerification() {
     const { address } = useAccount();
     const { signMessageAsync } = useSignMessage();
     const scorerIdStr = process.env.NEXT_PUBLIC_PASSPORT_SCORER_ID;
-    const scorerId = scorerIdStr ? Number(scorerIdStr) : 0;
+    const scorerId = scorerIdStr || "0";
     const apiKey = process.env.NEXT_PUBLIC_PASSPORT_API_KEY || "";
 
-    const { score, isPassing, isLoading } = usePassportScore({
+    const { data, isLoading } = usePassportScore({
         apiKey,
         scorerId,
         address
@@ -21,7 +21,7 @@ export function HumanityVerification() {
     const [verifiedOnChain, setVerifiedOnChain] = useState(false);
 
     useEffect(() => {
-        if (isPassing && address && !verifiedOnChain && !verifying) {
+        if (data?.passingScore && address && !verifiedOnChain && !verifying) {
             const verifyOnChain = async () => {
                 setVerifying(true);
                 try {
@@ -41,7 +41,7 @@ export function HumanityVerification() {
             };
             verifyOnChain();
         }
-    }, [isPassing, address, verifiedOnChain, verifying]);
+    }, [data?.passingScore, address, verifiedOnChain, verifying]);
 
     if (!address) return <div className="text-gray-400">Conecta tu wallet para verificar tu humanidad.</div>;
 
@@ -64,7 +64,7 @@ export function HumanityVerification() {
                     generateSignatureCallback={async (message) => {
                         return await signMessageAsync({ message });
                     }}
-                    theme="DarkTheme"
+                    theme={DarkTheme}
                 />
             )}
         </div>
