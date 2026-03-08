@@ -1,0 +1,17 @@
+{
+    "accountAssociation": {
+        "header": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9",
+        "payload": "eyJpZCI6MX0",
+        "signature": "dummy-signature-for-development"
+    },
+    "frame": {
+        "version": "1",
+        "name": "QuadTip",
+        "iconUrl": "https://quadtip.xyz/icon.png",
+        "homeUrl": "https://quadtip.xyz",
+        "imageUrl": "https://quadtip.xyz/api/og",
+        "buttonTitle": "Enviar Tip",
+        "splashImageUrl": "https://quadtip.xyz/splash.png",
+        "splashBackgroundColor": "#0a0a0f"
+    }
+}

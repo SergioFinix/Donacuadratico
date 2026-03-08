@@ -1,169 +1,163 @@
 "use client";
-import { useMiniApp } from "@/contexts/miniapp-context";
-import { sdk } from "@farcaster/frame-sdk";
+
+import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
+import { QuadraticTippingABI } from "@/lib/abi";
+import { formatUnits } from "viem";
 import { useState, useEffect } from "react";
-import { useAccount, useConnect } from "wagmi";
+import { HumanityVerification } from "@/components/HumanityVerification";
+import Link from "next/link";
+
+const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS as `0x${string}`;
 
 export default function Home() {
-  const { context, isMiniAppReady } = useMiniApp();
-  const [isAddingMiniApp, setIsAddingMiniApp] = useState(false);
-  const [addMiniAppMessage, setAddMiniAppMessage] = useState<string | null>(null);
-  
-  // Wallet connection hooks
-  const { address, isConnected, isConnecting } = useAccount();
-  const { connect, connectors } = useConnect();
-  
-  // Auto-connect wallet when miniapp is ready
-  useEffect(() => {
-    if (isMiniAppReady && !isConnected && !isConnecting && connectors.length > 0) {
-      const farcasterConnector = connectors.find(c => c.id === 'farcaster');
-      if (farcasterConnector) {
-        connect({ connector: farcasterConnector });
-      }
+  const { address, isConnected } = useAccount();
+
+  // 1. Get Active Round
+  const { data: activeRoundId } = useReadContract({
+    address: CONTRACT_ADDRESS,
+    abi: QuadraticTippingABI,
+    functionName: "getActiveRound",
+  });
+
+  // 2. Get Round Info
+  const { data: roundInfo, refetch: refetchRound } = useReadContract({
+    address: CONTRACT_ADDRESS,
+    abi: QuadraticTippingABI,
+    functionName: "getRoundInfo",
+    args: activeRoundId ? [activeRoundId] : undefined,
+    query: {
+      enabled: !!activeRoundId,
     }
-  }, [isMiniAppReady, isConnected, isConnecting, connectors, connect]);
-  
-  // Extract user data from context
-  const user = context?.user;
-  // Use connected wallet address if available, otherwise fall back to user custody/verification
-  const walletAddress = address || user?.custody || user?.verifications?.[0] || "0x1e4B...605B";
-  const displayName = user?.displayName || user?.username || "User";
-  const username = user?.username || "@user";
-  const pfpUrl = user?.pfpUrl;
-  
-  // Format wallet address to show first 6 and last 4 characters
-  const formatAddress = (address: string) => {
-    if (!address || address.length < 10) return address;
-    return `${address.slice(0, 6)}...${address.slice(-4)}`;
+  });
+
+  // 3. User verification status
+  const { data: isVerified } = useReadContract({
+    address: CONTRACT_ADDRESS,
+    abi: QuadraticTippingABI,
+    functionName: "isVerifiedHuman",
+    args: address ? [address] : undefined,
+    query: {
+      enabled: !!address,
+    }
+  });
+
+  // 4. Registration Check
+  const { data: isRegistered } = useReadContract({
+    address: CONTRACT_ADDRESS,
+    abi: QuadraticTippingABI,
+    functionName: "isRegisteredCreator",
+    args: address && activeRoundId ? [activeRoundId, address] : undefined,
+    query: {
+      enabled: !!address && !!activeRoundId,
+    }
+  });
+
+  const { writeContract, data: hash } = useWriteContract();
+  const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({ hash });
+
+  const registerAsCreator = () => {
+    if (!activeRoundId) return;
+    writeContract({
+      address: CONTRACT_ADDRESS,
+      abi: QuadraticTippingABI,
+      functionName: "registerAsCreator",
+      args: [activeRoundId],
+    });
   };
-  
-  if (!isMiniAppReady) {
-    return (
-      <main className="flex-1">
-        <section className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-          <div className="w-full max-w-md mx-auto p-8 text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading...</p>
-          </div>
-        </section>
-      </main>
-    );
-  }
-  
+
+  useEffect(() => {
+    if (isConfirmed) refetchRound();
+  }, [isConfirmed, refetchRound]);
+
   return (
-    <main className="flex-1">
-      <section className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-        <div className="w-full max-w-md mx-auto p-8 text-center">
-          {/* Welcome Header */}
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            Welcome
+    <div className="min-h-screen bg-[#0a0a0f] text-white p-4 pb-20 pt-8">
+      <div className="max-w-xl mx-auto space-y-8">
+        {/* Header */}
+        <div className="text-center space-y-2">
+          <h1 className="text-4xl font-black tracking-tighter bg-gradient-to-br from-[#10b981] to-[#8b5cf6] text-transparent bg-clip-text">
+            QuadTip
           </h1>
-          
-          {/* Status Message */}
-          <p className="text-lg text-gray-600 mb-6">
-            You are signed in!
-          </p>
-          
-          {/* User Wallet Address */}
-          <div className="mb-8">
-            <div className="bg-white/20 backdrop-blur-sm px-4 py-3 rounded-lg">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs text-gray-600 font-medium">Wallet Status</span>
-                <div className={`flex items-center gap-1 text-xs ${
-                  isConnected ? 'text-green-600' : isConnecting ? 'text-yellow-600' : 'text-gray-500'
-                }`}>
-                  <div className={`w-2 h-2 rounded-full ${
-                    isConnected ? 'bg-green-500' : isConnecting ? 'bg-yellow-500' : 'bg-gray-400'
-                  }`}></div>
-                  {isConnected ? 'Connected' : isConnecting ? 'Connecting...' : 'Disconnected'}
+          <p className="text-zinc-400">Quadratic Tipping for Farcaster</p>
+        </div>
+
+        {/* Humanity Status */}
+        {isConnected && (
+          <div className="space-y-4">
+            {!isVerified ? (
+              <HumanityVerification />
+            ) : (
+              <div className="p-4 bg-zinc-900 border border-green-500/20 rounded-xl flex items-center justify-between">
+                <div>
+                  <h3 className="font-bold text-green-400">Humano Verificado ✅</h3>
+                  <p className="text-xs text-zinc-400">Tu poder de matching está activo.</p>
                 </div>
-              </div>
-              <p className="text-sm text-gray-700 font-mono">
-                {formatAddress(walletAddress)}
-              </p>
-            </div>
-          </div>
-          
-          {/* User Profile Section */}
-          <div className="mb-8">
-            {/* Profile Avatar */}
-            <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center overflow-hidden">
-              {pfpUrl ? (
-                <img 
-                  src={pfpUrl} 
-                  alt="Profile" 
-                  className="w-full h-full object-cover rounded-full"
-                />
-              ) : (
-                <div className="w-16 h-16 bg-gray-800 rounded-full flex items-center justify-center">
-                  <div className="w-3 h-3 bg-green-400 rounded-full"></div>
-                </div>
-              )}
-            </div>
-            
-            {/* Profile Info */}
-            <div>
-              <h2 className="text-xl font-semibold text-gray-900 mb-1">
-                {displayName}
-              </h2>
-              <p className="text-gray-500">
-                {username.startsWith('@') ? username : `@${username}`}
-              </p>
-            </div>
-          </div>
-          
-          {/* Add Miniapp Button */}
-          <div className="mb-6">
-            <button
-              onClick={async () => {
-                if (isAddingMiniApp) return;
-                
-                setIsAddingMiniApp(true);
-                setAddMiniAppMessage(null);
-                
-                try {
-                  const result = await sdk.actions.addMiniApp();
-                  if (result.added) {
-                    setAddMiniAppMessage("✅ Miniapp added successfully!");
-                  } else {
-                    setAddMiniAppMessage("ℹ️ Miniapp was not added (user declined or already exists)");
-                  }
-                } catch (error: any) {
-                  console.error('Add miniapp error:', error);
-                  if (error?.message?.includes('domain')) {
-                    setAddMiniAppMessage("⚠️ This miniapp can only be added from its official domain");
-                  } else {
-                    setAddMiniAppMessage("❌ Failed to add miniapp. Please try again.");
-                  }
-                } finally {
-                  setIsAddingMiniApp(false);
-                }
-              }}
-              disabled={isAddingMiniApp}
-              className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-medium py-3 px-6 rounded-lg transition-colors duration-200 flex items-center justify-center gap-2"
-            >
-              {isAddingMiniApp ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                  Adding...
-                </>
-              ) : (
-                <>
-                  <span>📱</span>
-                  Add Miniapp
-                </>
-              )}
-            </button>
-            
-            {/* Add Miniapp Status Message */}
-            {addMiniAppMessage && (
-              <div className="mt-3 p-3 bg-white/30 backdrop-blur-sm rounded-lg">
-                <p className="text-sm text-gray-700">{addMiniAppMessage}</p>
+                {!isRegistered && activeRoundId && (
+                  <button
+                    onClick={registerAsCreator}
+                    disabled={isConfirming}
+                    className="px-4 py-2 bg-white text-black text-sm font-bold rounded-lg hover:bg-zinc-200 transition-colors disabled:opacity-50"
+                  >
+                    {isConfirming ? "Registrando..." : "Registrarse como Creador"}
+                  </button>
+                )}
+                {isRegistered && (
+                  <span className="px-3 py-1 bg-[#10b981]/10 text-[#10b981] text-xs font-bold rounded-full border border-[#10b981]/20">
+                    Creador Activo
+                  </span>
+                )}
               </div>
             )}
           </div>
+        )}
+
+        {/* Round Info */}
+        <div className="p-6 bg-zinc-900 border border-white/5 rounded-2xl space-y-6">
+          <div className="flex justify-between items-center">
+            <h2 className="text-xl font-bold">Ronda #{activeRoundId ? activeRoundId.toString() : "-"}</h2>
+            <div className="px-3 py-1 bg-zinc-800 rounded-full text-xs font-semibold text-zinc-300">
+              {roundInfo?.finalized ? "Finalizada" : "En Curso"}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="p-4 bg-black/50 rounded-xl border border-white/5">
+              <p className="text-sm text-zinc-400 mb-1">Matching Pool</p>
+              <p className="text-2xl font-black text-[#10b981]">
+                ${roundInfo ? formatUnits(roundInfo.matchingPool, 18) : "0.00"}
+              </p>
+            </div>
+            <div className="p-4 bg-black/50 rounded-xl border border-white/5">
+              <p className="text-sm text-zinc-400 mb-1">Creadores</p>
+              <p className="text-2xl font-black text-[#8b5cf6]">
+                {roundInfo ? roundInfo.creators.length : "0"}
+              </p>
+            </div>
+          </div>
         </div>
-      </section>
-    </main>
+
+        {/* Creators List */}
+        <div className="space-y-4">
+          <h3 className="text-lg font-bold">Explorar Creadores</h3>
+          {roundInfo?.creators.map((creator) => (
+            <Link href={`/tip/${creator}`} key={creator}>
+              <div className="p-4 bg-zinc-900 border border-white/5 rounded-xl flex items-center gap-4 hover:border-[#8b5cf6]/50 transition-colors cursor-pointer group mt-2">
+                <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-[#10b981] to-[#8b5cf6] flex items-center justify-center font-bold text-white shadow-lg">
+                  {creator.substring(2, 4)}
+                </div>
+                <div className="flex-1 overflow-hidden">
+                  <p className="font-bold font-mono text-sm truncate">{creator}</p>
+                  <p className="text-xs text-zinc-400 mt-1 group-hover:text-[#8b5cf6] transition-colors">Enviar Tip →</p>
+                </div>
+              </div>
+            </Link>
+          ))}
+          {roundInfo?.creators.length === 0 && (
+            <div className="p-8 text-center text-zinc-500 bg-zinc-900/50 rounded-xl border border-white/5">
+              Todavía no hay creadores registrados en esta ronda.
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
   );
 }
