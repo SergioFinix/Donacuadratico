@@ -17,7 +17,7 @@ const frame = {
     title: "Enviar Tip",
     action: {
       type: "launch_frame",
-      name: "QuadTip",
+      name: "DonaCuadratico",
       url: appUrl,
       splashImageUrl: `${appUrl}/splash.png`,
       splashBackgroundColor: "#0a0a0f",
@@ -26,10 +26,10 @@ const frame = {
 };
 
 export const metadata: Metadata = {
-  title: 'QuadTip',
+  title: 'DonaCuadratico',
   description: 'Quadratic Tipping for Farcaster via Celo',
   openGraph: {
-    title: 'QuadTip',
+    title: 'DonaCuadratico',
     description: 'Quadratic Tipping for Farcaster via Celo',
     images: [`${appUrl}/api/og`],
   },

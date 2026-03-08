@@ -77,7 +77,7 @@ export default function ResultsPage() {
                     <h1 className="text-4xl font-black text-white">
                         Resultados Ronda #{roundId.toString()}
                     </h1>
-                    <p className="text-zinc-400">Desglose de la distribución de QuadTip</p>
+                    <p className="text-zinc-400">Desglose de la distribución de DonaCuadratico</p>
                 </div>
 
                 {/* Global Stats */}

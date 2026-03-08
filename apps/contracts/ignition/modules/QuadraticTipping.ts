@@ -9,9 +9,9 @@ const QuadraticTippingModule = buildModule("QuadraticTippingModule", (m) => {
     const cUSDAddress = m.getParameter("cUSDAddress", "0x874069Fa1Eb16D44d622F2e0Ca25eeA172369bC1");
     const verifierAddress = m.getParameter("verifierAddress", "0x0000000000000000000000000000000000000000"); // will be deployed by owner, who can be verifier initially
 
-    const quadTipping = m.contract("QuadraticTipping", [cUSDAddress, verifierAddress]);
+    const DonaCuadraticoping = m.contract("QuadraticTipping", [cUSDAddress, verifierAddress]);
 
-    return { quadTipping };
+    return { DonaCuadraticoping };
 });
 
 export default QuadraticTippingModule;

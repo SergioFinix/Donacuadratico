@@ -75,7 +75,7 @@ export default function Home() {
         {/* Header */}
         <div className="text-center space-y-2">
           <h1 className="text-4xl font-black tracking-tighter bg-gradient-to-br from-[#10b981] to-[#8b5cf6] text-transparent bg-clip-text">
-            QuadTip
+            Donacuadratico
           </h1>
           <p className="text-zinc-400">Quadratic Tipping for Farcaster</p>
         </div>

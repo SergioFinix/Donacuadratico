@@ -6,12 +6,12 @@
     },
     "frame": {
         "version": "1",
-        "name": "QuadTip",
-        "iconUrl": "https://quadtip.xyz/icon.png",
-        "homeUrl": "https://quadtip.xyz",
-        "imageUrl": "https://quadtip.xyz/api/og",
+        "name": "DonaCuadratico",
+        "iconUrl": "https://DonaCuadratico.xyz/icon.png",
+        "homeUrl": "https://DonaCuadratico.xyz",
+        "imageUrl": "https://DonaCuadratico.xyz/api/og",
         "buttonTitle": "Enviar Tip",
-        "splashImageUrl": "https://quadtip.xyz/splash.png",
+        "splashImageUrl": "https://DonaCuadratico.xyz/splash.png",
         "splashBackgroundColor": "#0a0a0f"
     }
 }

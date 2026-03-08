@@ -86,7 +86,7 @@ export default function TipPage() {
         const amtStr = isCustom && customAmount ? customAmount : amount.toString();
         const estTotalMatchStr = estimatedMatchDiff > 0 ? formatUnits(BigInt(Math.floor(estimatedMatchDiff * 1e18).toString()), 18) : "0";
 
-        sdk.actions.openUrl(`https://warpcast.com/~/compose?text=Acabo de enviar un tip de $${amtStr} en QuadTip! 🎯 Mi tip generará ~$${parseFloat(estTotalMatchStr).toFixed(2)} de matching cuadrático.&embeds[]=https://quadtip.xyz`);
+        sdk.actions.openUrl(`https://warpcast.com/~/compose?text=Acabo de enviar un tip de $${amtStr} en DonaCuadratico! 🎯 Mi tip generará ~$${parseFloat(estTotalMatchStr).toFixed(2)} de matching cuadrático.&embeds[]=https://DonaCuadratico.xyz`);
     };
 
     // Preview Calculation
@@ -188,8 +188,8 @@ export default function TipPage() {
                                 key={amt}
                                 onClick={() => { setAmount(amt); setIsCustom(false); }}
                                 className={`py-3 rounded-xl font-bold text-sm transition-all ${!isCustom && amount === amt
-                                        ? "bg-[#10b981] text-black shadow-lg shadow-[#10b981]/20 scale-105"
-                                        : "bg-zinc-900 text-zinc-300 border border-white/5 hover:bg-zinc-800"
+                                    ? "bg-[#10b981] text-black shadow-lg shadow-[#10b981]/20 scale-105"
+                                    : "bg-zinc-900 text-zinc-300 border border-white/5 hover:bg-zinc-800"
                                     }`}
                             >
                                 ${amt.toFixed(2)}
