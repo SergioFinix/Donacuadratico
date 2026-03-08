@@ -7,8 +7,16 @@ import { useEffect, useState } from "react";
 export function HumanityVerification() {
     const { address } = useAccount();
     const { signMessageAsync } = useSignMessage();
-    // @ts-ignore
-    const { score, isPassing, isLoading } = usePassportScore();
+    const scorerIdStr = process.env.NEXT_PUBLIC_PASSPORT_SCORER_ID;
+    const scorerId = scorerIdStr ? Number(scorerIdStr) : 0;
+    const apiKey = process.env.NEXT_PUBLIC_PASSPORT_API_KEY || "";
+
+    const { score, isPassing, isLoading } = usePassportScore({
+        apiKey,
+        scorerId,
+        address
+    });
+
     const [verifying, setVerifying] = useState(false);
     const [verifiedOnChain, setVerifiedOnChain] = useState(false);
 
@@ -39,9 +47,7 @@ export function HumanityVerification() {
 
     if (verifiedOnChain) return <div className="text-green-500 font-bold px-4 py-2 border border-green-500/30 rounded-lg bg-green-500/10 text-center">¡Humano Verificado! ✅</div>;
 
-    const scorerIdStr = process.env.NEXT_PUBLIC_PASSPORT_SCORER_ID;
-    const scorerId = scorerIdStr ? Number(scorerIdStr) : 0;
-    const apiKey = process.env.NEXT_PUBLIC_PASSPORT_API_KEY || "";
+    // these are defined above now
 
     return (
         <div className="w-full mx-auto p-4 bg-[#0a0a0f] rounded-xl border border-white/10 shadow-xl shadow-black">
