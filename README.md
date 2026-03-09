@@ -1,59 +1,59 @@
 # DonaCuadratico 🎯 (QuadTip)
 
-**Quadratic Tipping for Farcaster via Celo.**
+**Tipping Cuadrático para Farcaster a través de Celo.**
 
-DonaCuadratico is a Farcaster Mini App designed to revolutionize content creator tipping by leveraging the power of **Quadratic Funding** directly within the social feed. Built on the **Celo** blockchain, it allows users to send micro-tips in `cUSD` that geometrically unlock matching pools, multiplying the impact of grassroots support.
+DonaCuadratico es una Mini App de Farcaster diseñada para revolucionar las propinas y donaciones a creadores de contenido, aprovechando el poder del **Fondeo Cuadrático (Quadratic Funding)** directamente dentro del feed social. Construida sobre la blockchain de **Celo**, permite a los usuarios enviar micro-propinas en `cUSD` que desbloquean geométricamente fondos de emparejamiento (matching pools), multiplicando el impacto del apoyo de la comunidad.
 
-## 🌟 Hackathon Highlights
+## 🌟 Puntos Clave del Hackathon
 
-- **Celo Native**: Fully deployed on Celo Sepolia, utilizing `cUSD` for stable, low-fee, and incredibly fast micro-transactions.
-- **Farcaster Mini App**: Fully compliant Farcaster Frame integrating `@farcaster/frame-sdk` for a seamless embedded social experience. Features dynamic OpenGraph image generation and a viral Cast-to-Share loop.
-- **Sybil Resistance with Human Passport**: Integrated with `@human.tech/passport-embed`. Both creators and tippers must prove their humanity (Score $\geq$ 20) to participate, ensuring the quadratic math is protected against Sybil attacks.
-- **Real-time Math Simulation**: The frontend calculates the projected quadratic match $`(\sum \sqrt{tips})^2`$ live as the user chooses their tip amount.
+- **Nativo de Celo**: Completamente desplegado en Celo Sepolia, utilizando `cUSD` para micro-transacciones estables, con comisiones muy bajas e increíblemente rápidas.
+- **Farcaster Mini App**: Farcaster Frame totalmente compatible que integra `@farcaster/frame-sdk` para una experiencia social integrada perfecta. Cuenta con generación dinámica de imágenes OpenGraph y un ciclo viral de compartir mediante Casts.
+- **Resistencia Sybil con Human Passport**: Integrado con `@human.tech/passport-embed`. Tanto los creadores como los donantes deben demostrar su humanidad (Score $\geq$ 20) para participar, asegurando que la matemática cuadrática esté protegida contra ataques Sybil.
+- **Simulación Matemática en Tiempo Real**: El frontend calcula y proyecta matemáticamente en vivo el match cuadrático $`(\sum \sqrt{tips})^2`$ mientras el usuario elige el monto de su donación.
 
-## 🚀 How it Works (The Flow)
+## 🚀 Cómo Funciona (El Flujo)
 
-1. **Verification**: Users connect their wallet and verify their humanity via the Human Passport widget. Once verified, the proof is recorded on-chain via a gas-subsidized backend call.
-2. **Creator Registration**: Verified humans can register their wallets as creators for the active tipping round.
-3. **Tipping**: Any verified user can visit a creator's profile, select an amount of `cUSD`, and see the projected matching impact. 
-4. **Viral Loop**: After the transaction is confirmed, the app prompts the user to share a Cast on Warpcast bragging about their tip and the generated matching value.
-5. **Finalization**: At the end of the 7-day round, the Smart Contract calculates the exact mathematical distribution of the matching pool and allows creators to claim their funds.
+1. **Verificación**: Los usuarios conectan su wallet y verifican su humanidad a través del widget Human Passport. Una vez verificados, la prueba se registra on-chain a través de una llamada de backend con gas subsidiado.
+2. **Registro de Creadores**: Los humanos verificados pueden registrar sus wallets como creadores para la ronda de donaciones activa.
+3. **Tipping (Donar)**: Cualquier usuario verificado puede visitar el perfil de un creador, seleccionar una cantidad de `cUSD` y ver el impacto proyectado en el matching.
+4. **Ciclo Viral**: Después de confirmar la transacción, la app invita al usuario a compartir un Cast en Warpcast presumiendo su donación y el valor de matching generado.
+5. **Finalización**: Al final de la ronda de 7 días, el Smart Contract calcula la distribución matemática exacta del matching pool y permite a los creadores reclamar sus fondos.
 
-## 🛠 Tech Stack
+## 🛠 Stack Tecnológico
 
 - **Frontend**: Next.js 14 (App Router), React, Tailwind CSS, shadcn/ui
 - **Web3 / Social**: wagmi, viem, `@farcaster/frame-sdk`, `@human.tech/passport-embed`
 - **Smart Contracts**: Solidity ^0.8.20, Hardhat Ignition
 - **Blockchain**: Celo Sepolia Testnet
 
-## 🔗 Smart Contract Deployment
+## 🔗 Despliegue del Smart Contract
 
-- **Network**: Celo Sepolia Testnet (Chain ID: 11142220)
-- **QuadraticTipping Contract**: `0x6A1A368162cE28f94E33Dbc72C4c82cA8A8476E6`
-- **cUSD Token (Testnet)**: `0x874069Fa1Eb16D44d622F2e0Ca25eeA172369bC1`
+- **Red**: Celo Sepolia Testnet (Chain ID: 11142220)
+- **Contrato QuadraticTipping**: `0x6A1A368162cE28f94E33Dbc72C4c82cA8A8476E6`
+- **Token cUSD (Testnet)**: `0x874069Fa1Eb16D44d622F2e0Ca25eeA172369bC1`
 
-## 💻 Getting Started (Local Development)
+## 💻 Guía de Inicio (Desarrollo Local)
 
-This is a monorepo managed by Turborepo.
+Este es un monorepo gestionado por Turborepo.
 
-### 1. Install dependencies
+### 1. Instalar dependencias
 ```bash
 pnpm install
 ```
 
-### 2. Set up Environment Variables
-You will need `.env` files in both `apps/contracts` and `apps/web`. A template is provided in `apps/web/.env.template`.
-Make sure to include your `PASSPORT_API_KEY`, `PASSPORT_SCORER_ID`, and wallet private keys.
+### 2. Configurar Variables de Entorno
+Necesitarás archivos `.env` tanto en `apps/contracts` como en `apps/web`. Se proporciona una plantilla en `apps/web/.env.template`.
+Asegúrate de incluir tu `PASSPORT_API_KEY`, `PASSPORT_SCORER_ID` y las claves privadas de tus wallets.
 
-### 3. Start the Next.js App
+### 3. Iniciar la App de Next.js
 ```bash
 pnpm dev
 ```
-Open [http://localhost:3000](http://localhost:3000) to view the application in your browser.
+Abre [http://localhost:3000](http://localhost:3000) para ver la aplicación en tu navegador.
 
-### 4. Smart Contract Commands (in `apps/contracts`)
-- Compile contracts: `npx hardhat compile`
-- Deploy to Celo Sepolia: `npx hardhat ignition deploy ignition/modules/QuadraticTipping.ts --network celo-sepolia`
+### 4. Comandos del Smart Contract (en `apps/contracts`)
+- Compilar contratos: `npx hardhat compile`
+- Desplegar en Celo Sepolia: `npx hardhat ignition deploy ignition/modules/QuadraticTipping.ts --network celo-sepolia`
 
 ---
-*Built with ❤️ for the Celo & Farcaster Ecosystem.*
+*Construido con ❤️ para el Ecosistema de Celo & Farcaster.*
