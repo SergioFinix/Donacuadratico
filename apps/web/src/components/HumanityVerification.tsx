@@ -11,7 +11,7 @@ export function HumanityVerification() {
     const scorerId = scorerIdStr || "0";
     const apiKey = process.env.NEXT_PUBLIC_PASSPORT_API_KEY || "";
 
-    const { data, isLoading } = usePassportScore({
+    const { data, isLoading, error } = usePassportScore({
         apiKey,
         scorerId,
         address
@@ -19,6 +19,11 @@ export function HumanityVerification() {
 
     const [verifying, setVerifying] = useState(false);
     const [verifiedOnChain, setVerifiedOnChain] = useState(false);
+
+    useEffect(() => {
+        console.log("Human Passport Debug -> address:", address, " apiKey exists?:", !!apiKey, " scorerId:", scorerId);
+        console.log("Human Passport Score Data:", data, " isLoading:", isLoading, " error:", error);
+    }, [address, apiKey, scorerId, data, isLoading, error]);
 
     useEffect(() => {
         if (data?.passingScore && address && !verifiedOnChain && !verifying) {
@@ -53,8 +58,14 @@ export function HumanityVerification() {
         <div className="w-full mx-auto p-4 bg-[#0a0a0f] rounded-xl border border-white/10 shadow-xl shadow-black">
             <h3 className="text-lg font-medium tracking-tight mb-4 text-white text-center">Verificación de Humanidad</h3>
             {isLoading ? (
-                <div className="flex justify-center p-4">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+                <div className="flex flex-col items-center justify-center p-4">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mb-2"></div>
+                    <p className="text-zinc-400 text-sm">Cargando verificación...</p>
+                    <p className="text-zinc-500 text-xs mt-1 text-center">API Key Status: {apiKey ? "OK" : "Missing"}</p>
+                </div>
+            ) : error ? (
+                <div className="text-red-500 text-sm text-center p-4">
+                    Error cargando Passport: {error.message || String(error)}
                 </div>
             ) : (
                 <PassportScoreWidget
