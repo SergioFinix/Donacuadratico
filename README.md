@@ -56,4 +56,3 @@ Abre [http://localhost:3000](http://localhost:3000) para ver la aplicación en t
 - Desplegar en Celo Sepolia: `npx hardhat ignition deploy ignition/modules/QuadraticTipping.ts --network celo-sepolia`
 
 ---
-*Construido con ❤️ para el Ecosistema de Celo & Farcaster.*

@@ -10,7 +10,7 @@ import "@openzeppelin/contracts/utils/math/Math.sol";
 contract QuadraticTipping is Ownable, ReentrancyGuard {
     using SafeERC20 for IERC20;
 
-    IERC20 public immutable cUSD;
+    IERC20 public immutable usdc;
     address public verifier;
 
     uint256 public constant ROUND_DURATION = 7 days;
@@ -38,20 +38,35 @@ contract QuadraticTipping is Ownable, ReentrancyGuard {
     }
 
     uint256 public currentRoundId;
-    
+
     mapping(uint256 => Round) public rounds;
     mapping(uint256 => mapping(address => CreatorInfo)) public creatorsInfo;
     mapping(uint256 => mapping(address => TipRecord[])) public roundCreatorTips;
     mapping(uint256 => mapping(address => bool)) public isRegisteredCreator;
-    mapping(uint256 => mapping(address => mapping(address => bool))) public hasTipped; // roundId => creator => tipper => bool
+    mapping(uint256 => mapping(address => mapping(address => bool)))
+        public hasTipped; // roundId => creator => tipper => bool
 
     mapping(address => bool) public isVerifiedHuman;
 
     event RoundCreated(uint256 indexed roundId, uint256 matchingPoolAmount);
     event CreatorRegistered(uint256 indexed roundId, address indexed creator);
-    event TipSent(uint256 indexed roundId, address indexed tipper, address indexed creator, uint256 amount);
-    event RoundFinalized(uint256 indexed roundId, uint256 totalMatching, uint256 distributedMatching);
-    event FundsDistributed(uint256 indexed roundId, address indexed creator, uint256 totalTips, uint256 matchingAmount);
+    event TipSent(
+        uint256 indexed roundId,
+        address indexed tipper,
+        address indexed creator,
+        uint256 amount
+    );
+    event RoundFinalized(
+        uint256 indexed roundId,
+        uint256 totalMatching,
+        uint256 distributedMatching
+    );
+    event FundsDistributed(
+        uint256 indexed roundId,
+        address indexed creator,
+        uint256 totalTips,
+        uint256 matchingAmount
+    );
 
     modifier onlyVerifier() {
         require(msg.sender == verifier, "Not verifier");
@@ -59,13 +74,17 @@ contract QuadraticTipping is Ownable, ReentrancyGuard {
     }
 
     modifier onlyActiveRound(uint256 _roundId) {
-        require(block.timestamp >= rounds[_roundId].startTime && block.timestamp <= rounds[_roundId].endTime, "Round not active");
+        require(
+            block.timestamp >= rounds[_roundId].startTime &&
+                block.timestamp <= rounds[_roundId].endTime,
+            "Round not active"
+        );
         _;
     }
 
-    constructor(address _cUSD, address _verifier) Ownable(msg.sender) {
-        require(_cUSD != address(0), "Invalid token address");
-        cUSD = IERC20(_cUSD);
+    constructor(address _usdc, address _verifier) Ownable(msg.sender) {
+        require(_usdc != address(0), "Invalid token address");
+        usdc = IERC20(_usdc);
         verifier = _verifier;
     }
 
@@ -76,7 +95,11 @@ contract QuadraticTipping is Ownable, ReentrancyGuard {
 
     function createRound(uint256 _matchingPoolAmount) external onlyOwner {
         if (_matchingPoolAmount > 0) {
-            cUSD.safeTransferFrom(msg.sender, address(this), _matchingPoolAmount);
+            usdc.safeTransferFrom(
+                msg.sender,
+                address(this),
+                _matchingPoolAmount
+            );
         }
 
         currentRoundId++;
@@ -95,7 +118,7 @@ contract QuadraticTipping is Ownable, ReentrancyGuard {
         require(!rounds[_roundId].finalized, "Round finalized");
         require(_amount > 0, "Amount must be greater than 0");
 
-        cUSD.safeTransferFrom(msg.sender, address(this), _amount);
+        usdc.safeTransferFrom(msg.sender, address(this), _amount);
         rounds[_roundId].matchingPool += _amount;
     }
 
@@ -103,7 +126,10 @@ contract QuadraticTipping is Ownable, ReentrancyGuard {
         require(rounds[_roundId].id != 0, "Round does not exist");
         require(!rounds[_roundId].finalized, "Round finalized");
         require(isVerifiedHuman[msg.sender], "Creator not verified human");
-        require(!isRegisteredCreator[_roundId][msg.sender], "Already registered");
+        require(
+            !isRegisteredCreator[_roundId][msg.sender],
+            "Already registered"
+        );
 
         rounds[_roundId].creators.push(msg.sender);
         creatorsInfo[_roundId][msg.sender].creator = msg.sender;
@@ -112,16 +138,23 @@ contract QuadraticTipping is Ownable, ReentrancyGuard {
         emit CreatorRegistered(_roundId, msg.sender);
     }
 
-    function tip(uint256 _roundId, address _creator, uint256 _amount) external nonReentrant onlyActiveRound(_roundId) {
+    function tip(
+        uint256 _roundId,
+        address _creator,
+        uint256 _amount
+    ) external nonReentrant onlyActiveRound(_roundId) {
         require(isVerifiedHuman[msg.sender], "Tipper not verified human");
-        require(isRegisteredCreator[_roundId][_creator], "Creator not registered in round");
+        require(
+            isRegisteredCreator[_roundId][_creator],
+            "Creator not registered in round"
+        );
         require(_amount > 0, "Amount must be greater than 0");
 
-        cUSD.safeTransferFrom(msg.sender, address(this), _amount);
+        usdc.safeTransferFrom(msg.sender, address(this), _amount);
 
         CreatorInfo storage info = creatorsInfo[_roundId][_creator];
         info.totalTips += _amount;
-        
+
         info.sqrtSum += Math.sqrt(_amount);
 
         if (!hasTipped[_roundId][_creator][msg.sender]) {
@@ -129,15 +162,17 @@ contract QuadraticTipping is Ownable, ReentrancyGuard {
             info.tipperCount++;
         }
 
-        roundCreatorTips[_roundId][_creator].push(TipRecord({
-            tipper: msg.sender,
-            amount: _amount
-        }));
+        roundCreatorTips[_roundId][_creator].push(
+            TipRecord({tipper: msg.sender, amount: _amount})
+        );
 
         emit TipSent(_roundId, msg.sender, _creator, _amount);
     }
 
-    function setVerifiedHuman(address _user, bool _verified) external onlyVerifier {
+    function setVerifiedHuman(
+        address _user,
+        bool _verified
+    ) external onlyVerifier {
         isVerifiedHuman[_user] = _verified;
     }
 
@@ -150,14 +185,16 @@ contract QuadraticTipping is Ownable, ReentrancyGuard {
         round.finalized = true;
 
         uint256 totalMatchingRequired = 0;
-        uint256[] memory estimatedMatches = new uint256[](round.creators.length);
+        uint256[] memory estimatedMatches = new uint256[](
+            round.creators.length
+        );
 
         for (uint256 i = 0; i < round.creators.length; i++) {
             address creator = round.creators[i];
             CreatorInfo storage info = creatorsInfo[_roundId][creator];
-            
+
             uint256 squaredSum = info.sqrtSum * info.sqrtSum;
-            
+
             if (squaredSum > info.totalTips) {
                 estimatedMatches[i] = squaredSum - info.totalTips;
                 totalMatchingRequired += estimatedMatches[i];
@@ -171,38 +208,59 @@ contract QuadraticTipping is Ownable, ReentrancyGuard {
         for (uint256 i = 0; i < round.creators.length; i++) {
             address creator = round.creators[i];
             CreatorInfo storage info = creatorsInfo[_roundId][creator];
-            
+
             uint256 finalMatching = 0;
             if (totalMatchingRequired > 0) {
                 if (totalMatchingRequired > matchingPool) {
-                    finalMatching = (estimatedMatches[i] * matchingPool) / totalMatchingRequired;
+                    finalMatching =
+                        (estimatedMatches[i] * matchingPool) /
+                        totalMatchingRequired;
                 } else {
                     finalMatching = estimatedMatches[i];
                 }
             }
-            
+
             info.matchingAmount = finalMatching;
-            
+
             uint256 totalPayout = info.totalTips + finalMatching;
             if (totalPayout > 0) {
-                cUSD.safeTransfer(creator, totalPayout);
+                usdc.safeTransfer(creator, totalPayout);
             }
-            
-            emit FundsDistributed(_roundId, creator, info.totalTips, finalMatching);
+
+            emit FundsDistributed(
+                _roundId,
+                creator,
+                info.totalTips,
+                finalMatching
+            );
         }
 
-        emit RoundFinalized(_roundId, totalMatchingRequired, totalMatchingRequired > matchingPool ? matchingPool : totalMatchingRequired);
+        emit RoundFinalized(
+            _roundId,
+            totalMatchingRequired,
+            totalMatchingRequired > matchingPool
+                ? matchingPool
+                : totalMatchingRequired
+        );
     }
 
-    function getRoundInfo(uint256 _roundId) external view returns (Round memory) {
+    function getRoundInfo(
+        uint256 _roundId
+    ) external view returns (Round memory) {
         return rounds[_roundId];
     }
 
-    function getCreatorInfo(uint256 _roundId, address _creator) external view returns (CreatorInfo memory) {
+    function getCreatorInfo(
+        uint256 _roundId,
+        address _creator
+    ) external view returns (CreatorInfo memory) {
         return creatorsInfo[_roundId][_creator];
     }
-    
-    function getCreatorTips(uint256 _roundId, address _creator) external view returns (TipRecord[] memory) {
+
+    function getCreatorTips(
+        uint256 _roundId,
+        address _creator
+    ) external view returns (TipRecord[] memory) {
         return roundCreatorTips[_roundId][_creator];
     }
 
@@ -210,7 +268,10 @@ contract QuadraticTipping is Ownable, ReentrancyGuard {
         return currentRoundId;
     }
 
-    function estimateMatching(uint256 _roundId, address _creator) external view returns (uint256) {
+    function estimateMatching(
+        uint256 _roundId,
+        address _creator
+    ) external view returns (uint256) {
         CreatorInfo memory info = creatorsInfo[_roundId][_creator];
         uint256 squaredSum = info.sqrtSum * info.sqrtSum;
         if (squaredSum > info.totalTips) {

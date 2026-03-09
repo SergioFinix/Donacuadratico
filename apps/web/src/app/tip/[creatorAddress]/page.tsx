@@ -9,7 +9,7 @@ import Link from "next/link";
 import { sdk } from "@farcaster/frame-sdk";
 
 const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS as `0x${string}`;
-const CUSD_ADDRESS = process.env.NEXT_PUBLIC_CUSD_ADDRESS as `0x${string}` || "0x874069Fa1Eb16D44d622F2e0Ca25eeA172369bC1";
+const USDC_ADDRESS = process.env.NEXT_PUBLIC_USDC_ADDRESS as `0x${string}` || "0x01C5C0122039549AD1493B8220cABEdD739BC44E";
 
 const PRESET_AMOUNTS = [0.25, 0.50, 1, 2];
 
@@ -75,7 +75,7 @@ export default function TipPage() {
 
         setStep("approving");
         approve({
-            address: CUSD_ADDRESS,
+            address: USDC_ADDRESS,
             abi: ERC20ABI,
             functionName: "approve",
             args: [CONTRACT_ADDRESS, parseUnits(amtStr, 18)],
@@ -96,7 +96,7 @@ export default function TipPage() {
 
     if (creatorInfo && tipAmountNum > 0) {
         // Math.sqrt receives scale 1e18, returns scale 1e9.
-        // So 1 cUSD = 1 = 1e18 wei. sqrt(1e18) = 1e9.
+        // So 1 USDC = 1 = 1e18 wei. sqrt(1e18) = 1e9.
         const tipAmountWei = tipAmountNum * 1e18;
         const currentSqrtSum = Number(creatorInfo.sqrtSum); // scale e9
         const tipSqrt = Math.sqrt(tipAmountWei);            // scale e9 
@@ -180,7 +180,7 @@ export default function TipPage() {
 
                 {/* Tip Selector */}
                 <div className="space-y-4">
-                    <h3 className="text-lg font-bold">Selecciona tu Tip (cUSD)</h3>
+                    <h3 className="text-lg font-bold">Selecciona tu Tip (USDC)</h3>
 
                     <div className="grid grid-cols-4 gap-2">
                         {PRESET_AMOUNTS.map((amt) => (
@@ -236,7 +236,7 @@ export default function TipPage() {
                     className={`w-full py-4 rounded-xl font-black text-lg transition-all shadow-xl shadow-[#10b981]/20 ${step !== "input" ? "bg-zinc-700 text-zinc-400 cursor-not-allowed" : "bg-[#10b981] text-black hover:bg-[#0ea5e9]/90 hover:shadow-[#0ea5e9]/30"
                         }`}
                 >
-                    {step === "approving" ? "Aprobando cUSD..." : step === "tipping" ? "Enviando Tip..." : "Confirmar Tip"}
+                    {step === "approving" ? "Aprobando USDC..." : step === "tipping" ? "Enviando Tip..." : "Confirmar Tip"}
                 </button>
             </div>
         </div>

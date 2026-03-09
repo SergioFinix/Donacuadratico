@@ -16,7 +16,9 @@
     "contracts:deploy:celo": "turbo run deploy:celo --filter=hardhat"
   },
   "devDependencies": {
-    "@types/node": "^20.8.0",
+    "@types/minimatch": "5.1.2",
+    "@types/node": "^20.19.37",
+    "ts-node": "^10.9.2",
     "turbo": "^1.10.16",
     "typescript": "^5.9.3"
   },
@@ -24,8 +26,5 @@
   "engines": {
     "node": ">=18.0.0",
     "pnpm": ">=8.0.0"
-  },
-  "dependencies": {
-    "ts-node": "^10.9.2"
   }
 }
