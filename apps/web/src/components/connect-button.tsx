@@ -24,15 +24,26 @@ export function WalletConnectButton() {
   }
 
   if (!isConnected) {
-    const frameConnector = connectors.find(connector => connector.id === 'frameWallet')
-    
+    const frameConnector = connectors.find(connector => connector.id === 'frameWallet' || connector.id === 'farcaster')
+    const anyConnector = connectors[0]
+    const connectorToUse = frameConnector || anyConnector
+
     return (
       <button
-        onClick={() => frameConnector && connect({ connector: frameConnector })}
+        onClick={() => {
+          console.log("Connectors available:", connectors.map(c => c.id));
+          if (connectorToUse) {
+            console.log("Connecting with:", connectorToUse.id);
+            connect({ connector: connectorToUse });
+          } else {
+            console.error("No wagmi connectors found!");
+            alert("No wallet connectors available. Please try from Warpcast directly.");
+          }
+        }}
         type="button"
         className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2"
       >
-        Connect Wallet
+        Connect Wallet {connectorToUse ? `(${connectorToUse.id})` : ''}
       </button>
     )
   }
