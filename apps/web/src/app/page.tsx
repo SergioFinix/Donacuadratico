@@ -4,8 +4,13 @@ import { useAccount, useReadContract, useWriteContract, useWaitForTransactionRec
 import { QuadraticTippingABI } from "@/lib/abi";
 import { formatUnits } from "viem";
 import { useState, useEffect } from "react";
-import { HumanityVerification } from "@/components/HumanityVerification";
+import dynamic from "next/dynamic";
 import Link from "next/link";
+
+const HumanityVerification = dynamic(
+  () => import("@/components/HumanityVerification").then((mod) => mod.HumanityVerification),
+  { ssr: false }
+);
 
 const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS as `0x${string}`;
 
