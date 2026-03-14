@@ -82,9 +82,26 @@ export default function Home() {
     });
   };
 
-  useEffect(() => {
-    if (isConfirmed) refetchRound();
-  }, [isConfirmed, refetchRound]);
+  // 5. Calculate Status for display
+  const now = BigInt(Math.floor(Date.now() / 1000));
+  const isExpired = roundInfo ? now > roundInfo.endTime : false;
+  const isActive = roundInfo ? (now >= roundInfo.startTime && now <= roundInfo.endTime) : false;
+
+  const statusLabel = roundInfo?.finalized
+    ? "Finalizada"
+    : isActive
+    ? "En Curso"
+    : isExpired
+    ? "Expirada"
+    : activeRoundId ? "En Curso" : "Sin Ronda";
+
+  const statusColor = roundInfo?.finalized
+    ? "text-zinc-500 bg-zinc-800"
+    : isActive
+    ? "text-[#10b981] bg-[#10b981]/10"
+    : isExpired
+    ? "text-yellow-400 bg-yellow-400/10"
+    : "text-zinc-500 bg-zinc-800";
 
   return (
     <WalletGate>
@@ -135,8 +152,8 @@ export default function Home() {
         <div className="p-6 bg-zinc-900 border border-white/5 rounded-2xl space-y-6">
           <div className="flex justify-between items-center">
             <h2 className="text-xl font-bold">Ronda #{activeRoundId ? activeRoundId.toString() : "-"}</h2>
-            <div className="px-3 py-1 bg-zinc-800 rounded-full text-xs font-semibold text-zinc-300">
-              {roundInfo?.finalized ? "Finalizada" : "En Curso"}
+            <div className={`px-3 py-1 rounded-full text-xs font-semibold ${statusColor}`}>
+              {statusLabel}
             </div>
           </div>
 
