@@ -56,7 +56,7 @@ export default function TipPage() {
                 address: CONTRACT_ADDRESS,
                 abi: QuadraticTippingABI,
                 functionName: "tip",
-                args: [activeRoundId!, creatorAddress, parseUnits(amtStr, 18)],
+                args: [activeRoundId!, creatorAddress, parseUnits(amtStr, 6)],
             });
         }
     }, [isApproveSuccess, step, isCustom, customAmount, amount, activeRoundId, creatorAddress, tip]);
@@ -78,13 +78,13 @@ export default function TipPage() {
             address: USDC_ADDRESS,
             abi: ERC20ABI,
             functionName: "approve",
-            args: [CONTRACT_ADDRESS, parseUnits(amtStr, 18)],
+            args: [CONTRACT_ADDRESS, parseUnits(amtStr, 6)],
         });
     };
 
     const handleShareCast = () => {
         const amtStr = isCustom && customAmount ? customAmount : amount.toString();
-        const estTotalMatchStr = estimatedMatchDiff > 0 ? formatUnits(BigInt(Math.floor(estimatedMatchDiff * 1e18).toString()), 18) : "0";
+        const estTotalMatchStr = estimatedMatchDiff > 0 ? formatUnits(BigInt(Math.floor(estimatedMatchDiff * 1e6).toString()), 6) : "0";
 
         sdk.actions.openUrl(`https://warpcast.com/~/compose?text=Acabo de enviar un tip de $${amtStr} en DonaCuadratico! 🎯 Mi tip generará ~$${parseFloat(estTotalMatchStr).toFixed(2)} de matching cuadrático.&embeds[]=https://DonaCuadratico.xyz`);
     };
@@ -95,20 +95,20 @@ export default function TipPage() {
     const tipAmountNum = isCustom ? Number(customAmount) : amount;
 
     if (creatorInfo && tipAmountNum > 0) {
-        // Math.sqrt receives scale 1e18, returns scale 1e9.
-        // So 1 USDC = 1 = 1e18 wei. sqrt(1e18) = 1e9.
-        const tipAmountWei = tipAmountNum * 1e18;
-        const currentSqrtSum = Number(creatorInfo.sqrtSum); // scale e9
-        const tipSqrt = Math.sqrt(tipAmountWei);            // scale e9 
+        // Math.sqrt receives scale 1e6, returns scale 1e3.
+        // So 1 USDC = 1 = 1e6 wei. sqrt(1e6) = 1e3.
+        const tipAmountWei = tipAmountNum * 1e6;
+        const currentSqrtSum = Number(creatorInfo.sqrtSum); // scale e3
+        const tipSqrt = Math.sqrt(tipAmountWei);            // scale e3 
 
         const newSqrtSum = currentSqrtSum + tipSqrt;
-        const newSquaredSum = newSqrtSum * newSqrtSum;      // scale e18
-        const currentTotalTips = Number(creatorInfo.totalTips); // scale e18
+        const newSquaredSum = newSqrtSum * newSqrtSum;      // scale e6
+        const currentTotalTips = Number(creatorInfo.totalTips); // scale e6
         const newTotalTips = currentTotalTips + tipAmountWei;
 
         let newMatching = 0;
         if (newSquaredSum > newTotalTips) {
-            newMatching = newSquaredSum - newTotalTips;       // scale e18
+            newMatching = newSquaredSum - newTotalTips;       // scale e6
         }
 
         let currentMatching = 0;
@@ -117,7 +117,7 @@ export default function TipPage() {
             currentMatching = currentSquaredSum - currentTotalTips;
         }
 
-        estimatedMatchDiff = (newMatching - currentMatching) / 1e18;
+        estimatedMatchDiff = (newMatching - currentMatching) / 1e6;
     }
 
     if (step === "success") {
@@ -165,7 +165,7 @@ export default function TipPage() {
                         <div className="text-center">
                             <p className="text-sm text-zinc-500">Tips Obtenidos</p>
                             <p className="font-bold text-[#10b981]">
-                                ${creatorInfo ? parseFloat(formatUnits(creatorInfo.totalTips, 18)).toFixed(2) : "0.00"}
+                                ${creatorInfo ? parseFloat(formatUnits(creatorInfo.totalTips, 6)).toFixed(2) : "0.00"}
                             </p>
                         </div>
                         <div className="w-px h-8 bg-white/10" />

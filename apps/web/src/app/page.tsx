@@ -144,7 +144,7 @@ export default function Home() {
             <div className="p-4 bg-black/50 rounded-xl border border-white/5">
               <p className="text-sm text-zinc-400 mb-1">Matching Pool</p>
               <p className="text-2xl font-black text-[#10b981]">
-                ${roundInfo ? formatUnits(roundInfo.matchingPool, 18) : "0.00"}
+                ${roundInfo ? formatUnits(roundInfo.matchingPool, 6) : "0.00"}
               </p>
             </div>
             <div className="p-4 bg-black/50 rounded-xl border border-white/5">
