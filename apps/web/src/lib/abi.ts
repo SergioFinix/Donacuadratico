@@ -195,29 +195,65 @@ export const QuadraticTippingABI = [
     },
     {
         "inputs": [
-            {
-                "internalType": "uint256",
-                "name": "_roundId",
-                "type": "uint256"
-            },
-            {
-                "internalType": "address",
-                "name": "_creator",
-                "type": "address"
-            }
+            { "internalType": "uint256", "name": "_roundId", "type": "uint256" },
+            { "internalType": "address", "name": "_creator", "type": "address" }
         ],
         "name": "isRegisteredCreator",
+        "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    // --- Admin functions ---
+    {
+        "inputs": [],
+        "name": "owner",
+        "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "currentRoundId",
+        "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [{ "internalType": "uint256", "name": "_matchingPoolAmount", "type": "uint256" }],
+        "name": "createRound",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [{ "internalType": "uint256", "name": "_roundId", "type": "uint256" }],
+        "name": "finalizeRound",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            { "internalType": "uint256", "name": "_roundId", "type": "uint256" },
+            { "internalType": "address", "name": "_creator", "type": "address" }
+        ],
+        "name": "getCreatorTips",
         "outputs": [
             {
-                "internalType": "bool",
+                "components": [
+                    { "internalType": "address", "name": "tipper", "type": "address" },
+                    { "internalType": "uint256", "name": "amount", "type": "uint256" }
+                ],
+                "internalType": "struct QuadraticTipping.TipRecord[]",
                 "name": "",
-                "type": "bool"
+                "type": "tuple[]"
             }
         ],
         "stateMutability": "view",
         "type": "function"
     }
 ] as const;
+
 
 export const ERC20ABI = [
     {

@@ -7,6 +7,8 @@ import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { WalletGate } from "@/components/WalletGate";
+import { AdminPanel } from "@/components/AdminPanel";
+
 
 const HumanityVerification = dynamic(
   () => import("@/components/HumanityVerification").then((mod) => mod.HumanityVerification),
@@ -17,6 +19,15 @@ const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS as `0x${string
 
 export default function Home() {
   const { address, isConnected } = useAccount();
+
+  // Detect contract owner
+  const { data: contractOwner } = useReadContract({
+    address: CONTRACT_ADDRESS,
+    abi: QuadraticTippingABI,
+    functionName: "owner",
+  });
+  const isOwner = !!address && !!contractOwner &&
+    address.toLowerCase() === contractOwner.toLowerCase();
 
   // 1. Get Active Round
   const { data: activeRoundId } = useReadContract({
@@ -86,6 +97,9 @@ export default function Home() {
           </h1>
           <p className="text-zinc-400">Quadratic Tipping for Farcaster</p>
         </div>
+
+        {/* Admin Panel — solo visible para el owner del contrato */}
+        {isOwner && <AdminPanel />}
 
         {/* Humanity Status */}
         {isConnected && (
