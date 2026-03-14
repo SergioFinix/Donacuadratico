@@ -1,74 +1,54 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from 'react'
-import { useAccount, useConnect, useDisconnect } from 'wagmi'
-import { useMiniApp } from '@/contexts/miniapp-context'
+import { useAccount, useConnect, useDisconnect } from "wagmi";
+import { isInFarcasterFrame } from "@/contexts/frame-wallet-context";
 
+/**
+ * - En Farcaster MiniApp: muestra la address pill (la conexión es automática).
+ * - En browser (Rabby/testing): muestra botón "Conectar Wallet" hasta conectar,
+ *   luego muestra la address pill + botón de desconectar.
+ */
 export function WalletConnectButton() {
-  const [mounted, setMounted] = useState(false)
-  const { address, isConnected } = useAccount()
-  const { connect, connectors } = useConnect()
-  const { disconnect } = useDisconnect()
-  const { context } = useMiniApp()
+  const { address, isConnected } = useAccount();
+  const { connect, connectors } = useConnect();
+  const { disconnect } = useDisconnect();
 
-  useEffect(() => {
-    setMounted(true)
-  }, [])
-
-  if (!mounted) {
+  // Conectado → siempre mostrar la address pill
+  if (isConnected && address) {
     return (
-      <button className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2">
-        Connect Wallet
-      </button>
-    )
-  }
-
-  if (!isConnected) {
-    return (
-      <div className="relative group">
-        <button
-          type="button"
-          className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-zinc-800 hover:text-white h-10 px-4 py-2"
-        >
-          Connect Wallet ▾
-        </button>
-        <div className="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-zinc-900 ring-1 ring-black ring-opacity-5 hidden group-hover:block z-50 overflow-hidden border border-white/10">
-          <div className="py-1" role="menu" aria-orientation="vertical">
-            {connectors.map((connector) => (
-              <button
-                key={connector.uid || connector.id}
-                onClick={() => {
-                  console.log(`Connecting with ${connector.name} (${connector.id})`);
-                  connect({ connector });
-                }}
-                className="w-full text-left px-4 py-2 text-sm text-zinc-300 hover:bg-zinc-800 hover:text-white transition-colors flex items-center justify-between"
-                role="menuitem"
-              >
-                {connector.name}
-              </button>
-            ))}
-          </div>
+      <div className="flex items-center gap-2">
+        <div className="px-3 py-1.5 rounded-full bg-zinc-800 border border-white/10 text-xs font-mono text-zinc-300">
+          {address.slice(0, 6)}…{address.slice(-4)}
         </div>
+        {/* Botón de desconectar solo en browser (para testing) */}
+        {!isInFarcasterFrame() && (
+          <button
+            onClick={() => disconnect()}
+            className="px-2 py-1 rounded-full bg-zinc-800 border border-white/10 text-xs text-zinc-500 hover:text-red-400 hover:border-red-400/30 transition-colors"
+            title="Desconectar wallet"
+          >
+            ✕
+          </button>
+        )}
       </div>
-    )
+    );
   }
 
-  return (
-    <div className="flex items-center gap-2">
+  // No conectado en browser → botón para conectar Rabby/MetaMask
+  if (!isInFarcasterFrame()) {
+    const injectedConnector = connectors.find((c) => c.id === "injected");
+    return (
       <button
-        type="button"
-        className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-3 py-2"
+        onClick={() => injectedConnector && connect({ connector: injectedConnector })}
+        disabled={!injectedConnector}
+        className="px-4 py-1.5 rounded-full bg-[#10b981]/10 border border-[#10b981]/30 text-xs font-semibold text-[#10b981] hover:bg-[#10b981]/20 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
       >
-        Celo
+        {injectedConnector ? "Conectar Wallet" : "No se detectó wallet"}
       </button>
+    );
+  }
 
-      <button
-        onClick={() => disconnect()}
-        type="button"
-        className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2"
-      >
-        {address ? `${address.slice(0, 6)}...${address.slice(-4)}` : 'Connected'}
-      </button>
-    </div>
-  )
+  // Farcaster: sin conexión aún → invisible (AutoConnect lo maneja)
+  return null;
 }
+

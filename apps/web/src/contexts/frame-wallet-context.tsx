@@ -2,13 +2,16 @@
 
 import { farcasterMiniApp } from "@farcaster/miniapp-wagmi-connector";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { ReactNode } from "react";
-import { WagmiProvider, createConfig, http, injected } from "wagmi";
+import { ReactNode, useEffect } from "react";
+import { WagmiProvider, createConfig, http, injected, useConnect } from "wagmi";
 import { celo, celoSepolia } from "wagmi/chains";
 
 const config = createConfig({
   chains: [celo, celoSepolia],
-  connectors: [farcasterMiniApp(), injected()],
+  connectors: [
+    farcasterMiniApp(), // [0] — producción: MiniApp de Farcaster
+    injected(),         // [1] — desarrollo: Rabby, MetaMask, etc.
+  ],
   transports: {
     [celo.id]: http(),
     [celoSepolia.id]: http(),
@@ -17,6 +20,35 @@ const config = createConfig({
 
 const queryClient = new QueryClient();
 
+/**
+ * Detecta si estamos corriendo dentro de un iframe de Farcaster.
+ * En browser normal (Rabby/testing) window.parent === window.
+ */
+function isInFarcasterFrame(): boolean {
+  if (typeof window === "undefined") return false;
+  return window.parent !== window;
+}
+
+/**
+ * Auto-conecta la wallet de Farcaster SOLO si estamos dentro del MiniApp.
+ * En browser normal no hace nada — el usuario conecta Rabby manualmente.
+ */
+function AutoConnect() {
+  const { connect, connectors } = useConnect();
+  useEffect(() => {
+    if (isInFarcasterFrame()) {
+      const farcasterConnector = connectors[0]; // farcasterMiniApp
+      if (farcasterConnector) {
+        connect({ connector: farcasterConnector });
+      }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  return null;
+}
+
+export { isInFarcasterFrame };
+
 export default function FrameWalletProvider({
   children,
 }: {
@@ -24,7 +56,10 @@ export default function FrameWalletProvider({
 }) {
   return (
     <WagmiProvider config={config}>
-      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+      <QueryClientProvider client={queryClient}>
+        <AutoConnect />
+        {children}
+      </QueryClientProvider>
     </WagmiProvider>
   );
 }
