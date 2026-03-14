@@ -168,7 +168,7 @@ function RoundRow({ roundId }: { roundId: bigint }) {
 export function AdminPanel() {
   const [poolInput, setPoolInput] = useState("0");
   const [durationInput, setDurationInput] = useState("604800"); // Default 7 days in seconds
-  const [step, setStep] = useState<"idle" | "approving" | "creating">("idle");
+  const [step, setStep] = useState<"idle" | "approving" | "creating_pending" | "creating">("idle");
 
   const { data: totalRounds } = useReadContract({
     address: CONTRACT_ADDRESS,
@@ -176,12 +176,24 @@ export function AdminPanel() {
     functionName: "currentRoundId",
   });
 
-  const { writeContract, data: hash } = useWriteContract();
-  const { isLoading: isConfirming, isSuccess: isConfirmed } =
-    useWaitForTransactionReceipt({ hash });
+  const { writeContract: writeApprove, data: hashApprove } = useWriteContract();
+  const { isLoading: isConfirmingApprove, isSuccess: isConfirmedApprove } =
+    useWaitForTransactionReceipt({ hash: hashApprove });
 
-  // Reset step on success
-  if (isConfirmed && step !== "idle") setStep("idle");
+  const { writeContract: writeCreate, data: hashCreate } = useWriteContract();
+  const { isLoading: isConfirmingCreate, isSuccess: isConfirmedCreate } =
+    useWaitForTransactionReceipt({ hash: hashCreate });
+
+  // Si approve es exitoso, pasamos al paso 2
+  if (isConfirmedApprove && step === "approving") {
+    setStep("creating_pending");
+  }
+
+  // Si la creacion de ronda es exitosa, reiniciamos el formulario
+  if (isConfirmedCreate && (step === "creating" || step === "creating_pending")) {
+    setStep("idle");
+    setPoolInput("0");
+  }
 
   const roundIds = totalRounds
     ? Array.from({ length: Number(totalRounds) }, (_, i) => BigInt(i + 1))
@@ -191,20 +203,16 @@ export function AdminPanel() {
     const amount = parseUnits(poolInput || "0", 18);
 
     if (amount > 0n) {
-      // Step 1: approve
       setStep("approving");
-      writeContract({
+      writeApprove({
         address: USDC_ADDRESS,
         abi: ERC20ABI,
         functionName: "approve",
         args: [CONTRACT_ADDRESS, amount],
       });
-      // After approve confirms, user will need to click again or we chain via useEffect
-      // For simplicity, we inform user to click again after approve
     } else {
-      // No pool — direct createRound(0)
       setStep("creating");
-      writeContract({
+      writeCreate({
         address: CONTRACT_ADDRESS,
         abi: QuadraticTippingABI,
         functionName: "createRound",
@@ -216,7 +224,7 @@ export function AdminPanel() {
   const handleCreateAfterApprove = () => {
     const amount = parseUnits(poolInput || "0", 18);
     setStep("creating");
-    writeContract({
+    writeCreate({
       address: CONTRACT_ADDRESS,
       abi: QuadraticTippingABI,
       functionName: "createRound",
@@ -273,29 +281,31 @@ export function AdminPanel() {
         {step === "idle" && (
           <button
             onClick={handleCreateRound}
-            disabled={isConfirming}
+            disabled={isConfirmingApprove || isConfirmingCreate}
             className="w-full py-3 rounded-xl bg-gradient-to-r from-[#10b981] to-[#059669] text-black font-bold text-sm hover:opacity-90 transition-opacity disabled:opacity-50"
           >
             🚀 Crear Ronda
           </button>
         )}
 
-        {step === "approving" && (
+        {(step === "approving" || step === "creating_pending") && (
           <div className="space-y-2">
-            <div className="p-3 bg-yellow-400/5 border border-yellow-400/20 rounded-xl text-xs text-yellow-400">
-              ✅ Paso 1/2: Aprueba el gasto de cUSD en tu wallet. Luego haz clic en &quot;Confirmar Creación&quot;.
+            <div className={`p-3 border rounded-xl text-xs ${step === "creating_pending" ? "bg-[#10b981]/10 border-[#10b981]/30 text-[#10b981]" : "bg-yellow-400/5 border-yellow-400/20 text-yellow-400"}`}>
+              {step === "creating_pending" 
+                ? "✅ cUSD Aprobado. Ahora confirma la creación de la ronda." 
+                : "✅ Paso 1/2: Aprueba el gasto de cUSD en tu wallet. Luego haz clic en \"Confirmar Creación\"."}
             </div>
             <button
               onClick={handleCreateAfterApprove}
-              disabled={isConfirming}
+              disabled={step === "approving" || isConfirmingApprove || isConfirmingCreate}
               className="w-full py-3 rounded-xl bg-[#8b5cf6] text-white font-bold text-sm hover:opacity-90 transition-opacity disabled:opacity-50"
             >
-              {isConfirming ? "Esperando confirmación…" : "✅ Paso 2/2: Confirmar Creación"}
+              {isConfirmingApprove ? "Aprobando cUSD..." : isConfirmingCreate ? "Esperando transacción..." : "✅ Paso 2/2: Confirmar Creación"}
             </button>
           </div>
         )}
 
-        {step === "creating" && isConfirming && (
+        {step === "creating" && isConfirmingCreate && (
           <div className="p-3 bg-[#10b981]/5 border border-[#10b981]/20 rounded-xl text-xs text-[#10b981] text-center">
             ⏳ Creando ronda en la blockchain…
           </div>
