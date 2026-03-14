@@ -6,6 +6,7 @@ import { formatUnits } from "viem";
 import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
+import { WalletGate } from "@/components/WalletGate";
 
 const HumanityVerification = dynamic(
   () => import("@/components/HumanityVerification").then((mod) => mod.HumanityVerification),
@@ -75,6 +76,7 @@ export default function Home() {
   }, [isConfirmed, refetchRound]);
 
   return (
+    <WalletGate>
     <div className="min-h-screen bg-[#0a0a0f] text-white p-4 pb-20 pt-8">
       <div className="max-w-xl mx-auto space-y-8">
         {/* Header */}
@@ -164,5 +166,6 @@ export default function Home() {
         </div>
       </div>
     </div>
+    </WalletGate>
   );
 }
