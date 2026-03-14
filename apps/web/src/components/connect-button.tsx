@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAccount, useConnect, useDisconnect } from "wagmi";
 
 /**
@@ -14,9 +14,17 @@ export function WalletConnectButton() {
   const { disconnect } = useDisconnect();
   const [showExternal, setShowExternal] = useState(false);
 
-  // Usamos injected si existe, sino caemos a walletConnect (ideal para Farcaster móvil)
-  const externalConnector = connectors.find((c) => c.id === "injected") 
-                         || connectors.find((c) => c.id === "walletConnect");
+  const [externalConnector, setExternalConnector] = useState<any>(null);
+
+  useEffect(() => {
+    // Si el navegador tiene una extensión instalada (window.ethereum existe), usamos injected
+    // Si es un webview móvil (como Farcaster app), usamos walletConnect para abrir el modal
+    const hasInjected = typeof window !== "undefined" && !!window.ethereum;
+    const connectorId = hasInjected ? "injected" : "walletConnect";
+    
+    const connector = connectors.find((c) => c.id === connectorId) || connectors.find((c) => c.id === "walletConnect");
+    setExternalConnector(connector);
+  }, [connectors]);
 
   // --- CONECTADO ---
   if (isConnected && address) {

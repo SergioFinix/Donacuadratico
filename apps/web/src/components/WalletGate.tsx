@@ -1,7 +1,7 @@
 "use client";
 
+import { useState, useEffect, ReactNode } from "react";
 import { useAccount, useConnect } from "wagmi";
-import { ReactNode } from "react";
 
 const FEATURES = [
   {
@@ -34,13 +34,21 @@ export function WalletGate({ children }: WalletGateProps) {
   const { isConnected } = useAccount();
   const { connect, connectors, isPending } = useConnect();
 
+  const [externalConnector, setExternalConnector] = useState<any>(null);
+
+  useEffect(() => {
+    const hasInjected = typeof window !== "undefined" && !!window.ethereum;
+    const connectorId = hasInjected ? "injected" : "walletConnect";
+    
+    const connector = connectors.find((c) => c.id === connectorId) || connectors.find((c) => c.id === "walletConnect");
+    setExternalConnector(connector);
+  }, [connectors]);
+
   // Si ya hay wallet conectada → mostrar la app principal
   if (isConnected) return <>{children}</>;
 
-  const externalConnector = connectors.find((c) => c.id === "injected")
-                         || connectors.find((c) => c.id === "walletConnect");
   // farcasterMiniApp auto-conecta via AutoConnect, pero por si acaso:
-  const farcasterConnector = connectors.find((c) => c.id !== "injected");
+  const farcasterConnector = connectors.find((c) => c.id === "farcaster");
 
   return (
     <div className="min-h-screen bg-[#0a0a0f] text-white flex flex-col items-center justify-center px-4 pb-16">
