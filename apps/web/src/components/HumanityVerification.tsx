@@ -26,7 +26,8 @@ export function HumanityVerification() {
     }, [address, apiKey, scorerId, data, isLoading, error]);
 
     useEffect(() => {
-        if (data?.passingScore && address && !verifiedOnChain && !verifying) {
+        const currentScore = data?.score ? Number(data.score) : 0;
+        if (currentScore >= 0.5 && address && !verifiedOnChain && !verifying) {
             const verifyOnChain = async () => {
                 setVerifying(true);
                 try {
@@ -46,7 +47,7 @@ export function HumanityVerification() {
             };
             verifyOnChain();
         }
-    }, [data?.passingScore, address, verifiedOnChain, verifying]);
+    }, [data?.score, address, verifiedOnChain, verifying]);
 
     if (!address) return <div className="text-gray-400">Conecta tu wallet para verificar tu humanidad.</div>;
 

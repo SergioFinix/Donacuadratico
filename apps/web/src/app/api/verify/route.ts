@@ -32,8 +32,8 @@ export async function POST(req: Request) {
         const data = await response.json();
         const score = Number(data.score);
 
-        // 2. Verificar que el score >= 15
-        if (score >= 15 && contractAddress) {
+        // 2. Verificar que el score >= 0.5
+        if (score >= 0.5 && contractAddress) {
             // 3. Si pasa, ejecutar setVerifiedHuman on-chain
             const account = privateKeyToAccount(privateKey as `0x${string}`);
 
@@ -71,7 +71,7 @@ export async function POST(req: Request) {
             return NextResponse.json({ verified: true, score });
         }
 
-        return NextResponse.json({ verified: score >= 15, score }); // If no contractAddress, still return verified logic for testing
+        return NextResponse.json({ verified: score >= 0.5, score }); // If no contractAddress, still return verified logic for testing
     } catch (error) {
         console.error(error);
         return NextResponse.json({ error: "Internal error" }, { status: 500 });
