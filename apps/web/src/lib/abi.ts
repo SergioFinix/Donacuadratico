@@ -229,6 +229,16 @@ export const QuadraticTippingABI = [
         "type": "function"
     },
     {
+        "inputs": [
+            { "internalType": "uint256", "name": "_roundId", "type": "uint256" },
+            { "internalType": "uint256", "name": "_amount", "type": "uint256" }
+        ],
+        "name": "fundMatchingPool",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
         "inputs": [{ "internalType": "uint256", "name": "_roundId", "type": "uint256" }],
         "name": "finalizeRound",
         "outputs": [],

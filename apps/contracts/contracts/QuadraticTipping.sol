@@ -13,8 +13,6 @@ contract QuadraticTipping is Ownable, ReentrancyGuard {
     IERC20 public immutable usdc;
     address public verifier;
 
-
-
     struct Round {
         uint256 id;
         uint256 startTime;
@@ -48,7 +46,11 @@ contract QuadraticTipping is Ownable, ReentrancyGuard {
 
     mapping(address => bool) public isVerifiedHuman;
 
-    event RoundCreated(uint256 indexed roundId, uint256 matchingPoolAmount, uint256 durationInSeconds);
+    event RoundCreated(
+        uint256 indexed roundId,
+        uint256 matchingPoolAmount,
+        uint256 durationInSeconds
+    );
     event CreatorRegistered(uint256 indexed roundId, address indexed creator);
     event TipSent(
         uint256 indexed roundId,
@@ -93,7 +95,10 @@ contract QuadraticTipping is Ownable, ReentrancyGuard {
         verifier = _verifier;
     }
 
-    function createRound(uint256 _matchingPoolAmount, uint256 _durationInSeconds) external onlyOwner {
+    function createRound(
+        uint256 _matchingPoolAmount,
+        uint256 _durationInSeconds
+    ) external onlyOwner {
         require(_durationInSeconds > 0, "Duration must be > 0");
 
         if (_matchingPoolAmount > 0) {

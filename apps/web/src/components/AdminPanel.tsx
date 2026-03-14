@@ -64,6 +64,18 @@ function RoundRow({ roundId }: { roundId: bigint }) {
   const { isLoading: isConfirming, isSuccess: isConfirmed, error: confirmError } =
     useWaitForTransactionReceipt({ hash });
 
+  // Funding Logic
+  const [fundingAmount, setFundingAmount] = useState("");
+  const [fundingStep, setFundingStep] = useState<"idle" | "approving" | "funding">("idle");
+
+  const { writeContract: fundPool, data: fundHash, error: fundError } = useWriteContract();
+  const { isLoading: isConfirmingFund, isSuccess: isFundSuccess, error: confirmFundError } = 
+    useWaitForTransactionReceipt({ hash: fundHash });
+
+  const { writeContract: approveFund, data: approveHash, error: approveError } = useWriteContract();
+  const { isLoading: isConfirmingApprove, isSuccess: isApproveSuccess, error: confirmApproveError } = 
+    useWaitForTransactionReceipt({ hash: approveHash });
+
   useEffect(() => {
     const error = finalError || confirmError;
     if (error) {
@@ -75,6 +87,37 @@ function RoundRow({ roundId }: { roundId: bigint }) {
       }
     }
   }, [finalError, confirmError]);
+
+  useEffect(() => {
+    const error = fundError || confirmFundError || approveError || confirmApproveError;
+    if (error) {
+      console.error("Fund error:", error);
+      toast.error("Error al fondear ronda");
+      setFundingStep("idle");
+    }
+  }, [fundError, confirmFundError, approveError, confirmApproveError]);
+
+  useEffect(() => {
+    if (isApproveSuccess && fundingStep === "approving") {
+      setFundingStep("funding");
+      const amount = parseUnits(fundingAmount, 6);
+      fundPool({
+        address: CONTRACT_ADDRESS,
+        abi: QuadraticTippingABI,
+        functionName: "fundMatchingPool",
+        args: [roundId, amount],
+      });
+    }
+  }, [isApproveSuccess, fundingStep, fundingAmount, roundId, fundPool]);
+
+  useEffect(() => {
+    if (isFundSuccess) {
+      toast.success("¡Fondeo exitoso!");
+      setFundingStep("idle");
+      setFundingAmount("");
+      refetch();
+    }
+  }, [isFundSuccess, refetch]);
 
   if (isConfirmed) refetch();
 
@@ -147,6 +190,42 @@ function RoundRow({ roundId }: { roundId: bigint }) {
           >
             {isConfirming ? "…" : "Finalizar"}
           </button>
+        )}
+
+        {/* Fund Input/Button */}
+        {!round.finalized && (
+          <div className="flex items-center gap-2 bg-black/20 p-1 rounded-lg border border-white/5">
+            <input
+              type="number"
+              placeholder="0.00"
+              value={fundingAmount}
+              onChange={(e) => setFundingAmount(e.target.value)}
+              disabled={fundingStep !== "idle"}
+              className="w-16 bg-transparent text-xs font-mono text-white outline-none pl-1 placeholder:text-zinc-700"
+            />
+            <button
+              onClick={() => {
+                const amount = parseUnits(fundingAmount, 6);
+                if (amount <= 0n) return toast.error("Ingresa un monto");
+                setFundingStep("approving");
+                approveFund({
+                  address: USDC_ADDRESS,
+                  abi: ERC20ABI,
+                  functionName: "approve",
+                  args: [CONTRACT_ADDRESS, amount],
+                });
+              }}
+              disabled={fundingStep !== "idle" || !fundingAmount}
+              className="p-1 rounded bg-[#10b981]/10 text-[#10b981] hover:bg-[#10b981]/20 transition-colors disabled:opacity-30"
+              title="Fondear Matching Pool"
+            >
+              {fundingStep === "idle" ? (
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+              ) : (
+                <div className="w-3 h-3 border-2 border-[#10b981] border-t-transparent animate-spin rounded-full" />
+              )}
+            </button>
+          </div>
         )}
 
         {/* Expand toggle */}
