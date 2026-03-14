@@ -268,7 +268,7 @@ export function AdminPanel() {
         {step === "approving" && (
           <div className="space-y-2">
             <div className="p-3 bg-yellow-400/5 border border-yellow-400/20 rounded-xl text-xs text-yellow-400">
-              ✅ Paso 1/2: Aprueba el gasto de cUSD en tu wallet. Luego haz clic en "Confirmar Creación".
+              ✅ Paso 1/2: Aprueba el gasto de cUSD en tu wallet. Luego haz clic en &quot;Confirmar Creación&quot;.
             </div>
             <button
               onClick={handleCreateAfterApprove}
