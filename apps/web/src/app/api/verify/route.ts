@@ -10,8 +10,8 @@ export async function POST(req: Request) {
         const { address } = await req.json();
         if (!address) return NextResponse.json({ error: "No address" }, { status: 400 });
 
-        const apiKey = process.env.PASSPORT_API_KEY;
-        const scorerId = process.env.PASSPORT_SCORER_ID;
+        const apiKey = process.env.NEXT_PUBLIC_PASSPORT_API_KEY || process.env.PASSPORT_API_KEY;
+        const scorerId = process.env.NEXT_PUBLIC_PASSPORT_SCORER_ID || process.env.PASSPORT_SCORER_ID;
         const privateKey = process.env.VERIFIER_PRIVATE_KEY;
 
         if (!apiKey || !scorerId || !privateKey) {
