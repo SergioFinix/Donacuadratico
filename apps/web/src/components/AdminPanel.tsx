@@ -30,7 +30,7 @@ function CreatorRow({ roundId, creator }: { roundId: bigint; creator: `0x${strin
         <div>
           <p className="text-zinc-500">Tips</p>
           <p className="text-white font-semibold">
-            ${info ? formatUnits(info.totalTips, 18) : "—"}
+            ${info ? formatUnits(info.totalTips, 6) : "—"}
           </p>
         </div>
         <div>
@@ -40,7 +40,7 @@ function CreatorRow({ roundId, creator }: { roundId: bigint; creator: `0x${strin
         <div>
           <p className="text-zinc-500">Matching</p>
           <p className="text-[#10b981] font-semibold">
-            ${info ? formatUnits(info.matchingAmount, 18) : "—"}
+            ${info ? formatUnits(info.matchingAmount, 6) : "—"}
           </p>
         </div>
       </div>
@@ -103,7 +103,7 @@ function RoundRow({ roundId }: { roundId: bigint }) {
         {/* Pool */}
         <div className="text-right text-xs">
           <p className="text-zinc-500">Pool</p>
-          <p className="text-[#10b981] font-bold">${formatUnits(round.matchingPool, 18)}</p>
+          <p className="text-[#10b981] font-bold">${formatUnits(round.matchingPool, 6)}</p>
         </div>
 
         {/* Creators */}
@@ -200,7 +200,7 @@ export function AdminPanel() {
     : [];
 
   const handleCreateRound = async () => {
-    const amount = parseUnits(poolInput || "0", 18);
+    const amount = parseUnits(poolInput || "0", 6);
 
     if (amount > 0n) {
       setStep("approving");
@@ -222,7 +222,7 @@ export function AdminPanel() {
   };
 
   const handleCreateAfterApprove = () => {
-    const amount = parseUnits(poolInput || "0", 18);
+    const amount = parseUnits(poolInput || "0", 6);
     setStep("creating");
     writeCreate({
       address: CONTRACT_ADDRESS,
