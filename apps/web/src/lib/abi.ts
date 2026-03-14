@@ -219,7 +219,10 @@ export const QuadraticTippingABI = [
         "type": "function"
     },
     {
-        "inputs": [{ "internalType": "uint256", "name": "_matchingPoolAmount", "type": "uint256" }],
+        "inputs": [
+            { "internalType": "uint256", "name": "_matchingPoolAmount", "type": "uint256" },
+            { "internalType": "uint256", "name": "_durationInSeconds", "type": "uint256" }
+        ],
         "name": "createRound",
         "outputs": [],
         "stateMutability": "nonpayable",

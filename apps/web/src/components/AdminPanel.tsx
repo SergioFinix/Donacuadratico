@@ -118,7 +118,7 @@ function RoundRow({ roundId }: { roundId: bigint }) {
         </span>
 
         {/* Finalize button */}
-        {isExpired && !round.finalized && (
+        {!round.finalized && (
           <button
             onClick={() =>
               writeContract({
@@ -165,9 +165,9 @@ function RoundRow({ roundId }: { roundId: bigint }) {
   );
 }
 
-// ─── Main AdminPanel ──────────────────────────────────────────────────────────
 export function AdminPanel() {
   const [poolInput, setPoolInput] = useState("0");
+  const [durationInput, setDurationInput] = useState("604800"); // Default 7 days in seconds
   const [step, setStep] = useState<"idle" | "approving" | "creating">("idle");
 
   const { data: totalRounds } = useReadContract({
@@ -208,7 +208,7 @@ export function AdminPanel() {
         address: CONTRACT_ADDRESS,
         abi: QuadraticTippingABI,
         functionName: "createRound",
-        args: [0n],
+        args: [0n, BigInt(durationInput)],
       });
     }
   };
@@ -220,7 +220,7 @@ export function AdminPanel() {
       address: CONTRACT_ADDRESS,
       abi: QuadraticTippingABI,
       functionName: "createRound",
-      args: [amount],
+      args: [amount, BigInt(durationInput)],
     });
   };
 
@@ -252,7 +252,22 @@ export function AdminPanel() {
               className="w-full pl-7 pr-4 py-2.5 bg-black/50 border border-white/10 rounded-xl text-white text-sm focus:outline-none focus:border-[#10b981]/50 placeholder-zinc-600"
             />
           </div>
-          <span className="text-xs text-zinc-500">cUSD matching pool</span>
+          <span className="text-xs text-zinc-500 w-24">matching pool</span>
+        </div>
+
+        <div className="flex gap-3 items-center">
+          <select
+            value={durationInput}
+            onChange={(e) => setDurationInput(e.target.value)}
+            className="flex-1 px-4 py-2.5 bg-black/50 border border-white/10 rounded-xl text-white text-sm focus:outline-none focus:border-[#10b981]/50 appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2224%22%20height%3D%2224%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20stroke%3D%22%2371717a%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E')] bg-[length:16px] bg-[position:calc(100%-12px)_center] bg-no-repeat pr-10"
+          >
+            <option value="600">Prueba rápida (10 minutos)</option>
+            <option value="3600">Corta (1 hora)</option>
+            <option value="86400">Normal (1 día)</option>
+            <option value="259200">Extendida (3 días)</option>
+            <option value="604800">Oficial (7 días)</option>
+          </select>
+          <span className="text-xs text-zinc-500 w-24">duración</span>
         </div>
 
         {step === "idle" && (
