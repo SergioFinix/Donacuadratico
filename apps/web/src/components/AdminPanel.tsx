@@ -118,7 +118,7 @@ function RoundRow({ roundId }: { roundId: bigint }) {
         </span>
 
         {/* Finalize button */}
-        {!round.finalized && (
+        {!round.finalized && isExpired && (
           <button
             onClick={() =>
               writeContract({
