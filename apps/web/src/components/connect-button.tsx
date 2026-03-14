@@ -14,7 +14,9 @@ export function WalletConnectButton() {
   const { disconnect } = useDisconnect();
   const [showExternal, setShowExternal] = useState(false);
 
-  const injectedConnector = connectors.find((c) => c.id === "injected");
+  // Usamos injected si existe, sino caemos a walletConnect (ideal para Farcaster móvil)
+  const externalConnector = connectors.find((c) => c.id === "injected") 
+                         || connectors.find((c) => c.id === "walletConnect");
 
   // --- CONECTADO ---
   if (isConnected && address) {
@@ -27,9 +29,9 @@ export function WalletConnectButton() {
 
         {/* Wallet externa */}
         <button
-          onClick={() => injectedConnector && connect({ connector: injectedConnector })}
-          disabled={!injectedConnector || isPending}
-          title="Cambiar a wallet externa (Rabby/MetaMask)"
+          onClick={() => externalConnector && connect({ connector: externalConnector })}
+          disabled={!externalConnector || isPending}
+          title="Cambiar a wallet externa (Rabby/MetaMask/WalletConnect)"
           className="px-2 py-1.5 rounded-full bg-zinc-800 border border-white/10 text-xs text-zinc-400 hover:text-[#10b981] hover:border-[#10b981]/40 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
         >
           🔑
@@ -50,11 +52,11 @@ export function WalletConnectButton() {
   // --- NO CONECTADO (browser / Farcaster sin auto-connect aún) ---
   return (
     <button
-      onClick={() => injectedConnector && connect({ connector: injectedConnector })}
-      disabled={!injectedConnector || isPending}
+      onClick={() => externalConnector && connect({ connector: externalConnector })}
+      disabled={!externalConnector || isPending}
       className="px-4 py-1.5 rounded-full bg-[#10b981]/10 border border-[#10b981]/30 text-xs font-semibold text-[#10b981] hover:bg-[#10b981]/20 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
     >
-      {isPending ? "Conectando…" : injectedConnector ? "Conectar Wallet" : "Sin wallet detectada"}
+      {isPending ? "Conectando…" : externalConnector ? "Conectar Wallet" : "Sin wallet detectada"}
     </button>
   );
 }

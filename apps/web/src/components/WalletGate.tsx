@@ -37,7 +37,8 @@ export function WalletGate({ children }: WalletGateProps) {
   // Si ya hay wallet conectada → mostrar la app principal
   if (isConnected) return <>{children}</>;
 
-  const injectedConnector = connectors.find((c) => c.id === "injected");
+  const externalConnector = connectors.find((c) => c.id === "injected")
+                         || connectors.find((c) => c.id === "walletConnect");
   // farcasterMiniApp auto-conecta via AutoConnect, pero por si acaso:
   const farcasterConnector = connectors.find((c) => c.id !== "injected");
 
@@ -89,10 +90,10 @@ export function WalletGate({ children }: WalletGateProps) {
           </button>
         )}
 
-        {/* Wallet externa (Rabby, MetaMask) */}
-        {injectedConnector && (
+        {/* Wallet externa (Rabby, MetaMask, WalletConnect) */}
+        {externalConnector && (
           <button
-            onClick={() => connect({ connector: injectedConnector })}
+            onClick={() => connect({ connector: externalConnector })}
             disabled={isPending}
             className="w-full py-3.5 rounded-2xl bg-zinc-800 border border-white/10 text-white font-bold text-sm hover:bg-zinc-700 transition-colors disabled:opacity-50"
           >
@@ -100,7 +101,7 @@ export function WalletGate({ children }: WalletGateProps) {
           </button>
         )}
 
-        {!farcasterConnector && !injectedConnector && (
+        {!farcasterConnector && !externalConnector && (
           <p className="text-red-400 text-sm">No se detectó ninguna wallet. Abre la app desde Warpcast o instala Rabby.</p>
         )}
 
