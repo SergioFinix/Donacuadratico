@@ -16,6 +16,7 @@ const USDC_ADDRESS = process.env.NEXT_PUBLIC_USDC_ADDRESS as `0x${string}`;
 
 // ─── Subcomponent: Creator row inside expanded round ─────────────────────────
 function CreatorRow({ roundId, creator }: { roundId: bigint; creator: `0x${string}` }) {
+  const [showTips, setShowTips] = useState(false);
   const { data: info } = useReadContract({
     address: CONTRACT_ADDRESS,
     abi: QuadraticTippingABI,
@@ -23,29 +24,62 @@ function CreatorRow({ roundId, creator }: { roundId: bigint; creator: `0x${strin
     args: [roundId, creator],
   });
 
+  const { data: tips } = useReadContract({
+    address: CONTRACT_ADDRESS,
+    abi: QuadraticTippingABI,
+    functionName: "getCreatorTips",
+    args: [roundId, creator],
+    query: { enabled: showTips }
+  });
+
   return (
-    <div className="flex items-center justify-between py-2 px-3 rounded-lg bg-black/30 border border-white/5 text-xs">
-      <span className="font-mono text-zinc-400 truncate w-36">
-        {creator.slice(0, 8)}…{creator.slice(-6)}
-      </span>
-      <div className="flex gap-4 text-right">
-        <div>
-          <p className="text-zinc-500">Tips</p>
-          <p className="text-white font-semibold">
-            ${info ? formatUnits(info.totalTips, 6) : "—"}
-          </p>
-        </div>
-        <div>
-          <p className="text-zinc-500">Donantes</p>
-          <p className="text-white font-semibold">{info ? info.tipperCount.toString() : "—"}</p>
-        </div>
-        <div>
-          <p className="text-zinc-500">Matching</p>
-          <p className="text-[#10b981] font-semibold">
-            ${info ? formatUnits(info.matchingAmount, 6) : "—"}
-          </p>
+    <div className="space-y-2">
+      <div className="flex items-center justify-between py-2 px-3 rounded-lg bg-black/30 border border-white/5 text-xs">
+        <span className="font-mono text-zinc-400 truncate w-36">
+          {creator.slice(0, 8)}…{creator.slice(-6)}
+        </span>
+        <div className="flex gap-4 text-right">
+          <div>
+            <p className="text-zinc-500">Tips</p>
+            <p className="text-white font-semibold">
+              ${info ? formatUnits(info.totalTips, 6) : "—"}
+            </p>
+          </div>
+          <div>
+            <p className="text-zinc-500">Donantes</p>
+            <p className="text-white font-semibold">{info ? info.tipperCount.toString() : "—"}</p>
+          </div>
+          <div>
+            <p className="text-zinc-500">Matching</p>
+            <p className="text-[#10b981] font-semibold">
+              ${info ? formatUnits(info.matchingAmount, 6) : "—"}
+            </p>
+          </div>
+          {info && info.tipperCount > 0n && (
+            <button 
+              onClick={() => setShowTips(!showTips)}
+              className="pl-2 text-zinc-500 hover:text-zinc-300 transition-colors"
+            >
+              {showTips ? "▲" : "▼"}
+            </button>
+          )}
         </div>
       </div>
+
+      {showTips && tips && tips.length > 0 && (
+        <div className="ml-4 space-y-1 border-l-2 border-white/5 pl-3">
+          {tips.map((record, idx) => (
+            <div key={idx} className="flex justify-between text-[10px] py-1 border-b border-white/5 last:border-0">
+              <span className="font-mono text-zinc-500 truncate w-32">
+                {record.tipper.slice(0, 6)}…{record.tipper.slice(-4)}
+              </span>
+              <span className="text-[#10b981] font-bold">
+                +${formatUnits(record.amount, 6)}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

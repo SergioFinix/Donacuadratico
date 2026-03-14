@@ -150,23 +150,24 @@ contract QuadraticTipping is Ownable, ReentrancyGuard {
         address _creator,
         uint256 _amount
     ) external nonReentrant onlyActiveRound(_roundId) {
-        require(isVerifiedHuman[msg.sender], "Tipper not verified human");
+        require(isVerifiedHuman[msg.sender], "Tipper not verified human"); //valida que sea humano
         require(
-            isRegisteredCreator[_roundId][_creator],
+            isRegisteredCreator[_roundId][_creator], //valida que el creador este registrado
             "Creator not registered in round"
         );
-        require(_amount > 0, "Amount must be greater than 0");
+        require(_amount > 0, "Amount must be greater than 0"); //valida que el monto sea mayor a 0
 
-        usdc.safeTransferFrom(msg.sender, address(this), _amount);
+        usdc.safeTransferFrom(msg.sender, address(this), _amount); //transfiere el monto del donante al contrato
 
-        CreatorInfo storage info = creatorsInfo[_roundId][_creator];
-        info.totalTips += _amount;
+        CreatorInfo storage info = creatorsInfo[_roundId][_creator]; //obtiene la informacion del creador
+        info.totalTips += _amount; //suma el monto al total de tips del creador
 
-        info.sqrtSum += Math.sqrt(_amount);
+        info.sqrtSum += Math.sqrt(_amount); //suma la raiz cuadrada al atributo sqrtSum del creador
 
         if (!hasTipped[_roundId][_creator][msg.sender]) {
-            hasTipped[_roundId][_creator][msg.sender] = true;
-            info.tipperCount++;
+            //valida que el donante no haya donado antes al creador
+            hasTipped[_roundId][_creator][msg.sender] = true; //marca que el donante ha donado al creador
+            info.tipperCount++; //incrementa el contador de donantes
         }
 
         roundCreatorTips[_roundId][_creator].push(
