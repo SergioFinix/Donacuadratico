@@ -8,6 +8,8 @@ import {
 } from "wagmi";
 import { parseUnits, formatUnits } from "viem";
 import { QuadraticTippingABI, ERC20ABI } from "@/lib/abi";
+import { toast } from "react-hot-toast";
+import { useEffect } from "react";
 
 const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS as `0x${string}`;
 const USDC_ADDRESS = process.env.NEXT_PUBLIC_USDC_ADDRESS as `0x${string}`;
@@ -58,9 +60,21 @@ function RoundRow({ roundId }: { roundId: bigint }) {
     args: [roundId],
   });
 
-  const { writeContract, data: hash } = useWriteContract();
-  const { isLoading: isConfirming, isSuccess: isConfirmed } =
+  const { writeContract, data: hash, error: finalError } = useWriteContract();
+  const { isLoading: isConfirming, isSuccess: isConfirmed, error: confirmError } =
     useWaitForTransactionReceipt({ hash });
+
+  useEffect(() => {
+    const error = finalError || confirmError;
+    if (error) {
+      console.error("Finalize error:", error);
+      if (error.message?.includes("Round still active")) {
+        toast.error("La ronda todavía está activa");
+      } else {
+        toast.error("Error al finalizar la ronda");
+      }
+    }
+  }, [finalError, confirmError]);
 
   if (isConfirmed) refetch();
 
@@ -176,13 +190,31 @@ export function AdminPanel() {
     functionName: "currentRoundId",
   });
 
-  const { writeContract: writeApprove, data: hashApprove } = useWriteContract();
-  const { isLoading: isConfirmingApprove, isSuccess: isConfirmedApprove } =
+  const { writeContract: writeCreate, data: hashCreate, error: createError } = useWriteContract();
+  const { isLoading: isConfirmingCreate, isSuccess: isConfirmedCreate, error: confirmCreateError } =
+    useWaitForTransactionReceipt({ hash: hashCreate });
+
+  useEffect(() => {
+    const error = createError || confirmCreateError;
+    if (error) {
+      console.error("Create error:", error);
+      toast.error("Error al crear la ronda");
+      setStep("idle");
+    }
+  }, [createError, confirmCreateError]);
+
+  const { writeContract: writeApprove, data: hashApprove, error: approveError } = useWriteContract();
+  const { isLoading: isConfirmingApprove, isSuccess: isConfirmedApprove, error: confirmApproveError } =
     useWaitForTransactionReceipt({ hash: hashApprove });
 
-  const { writeContract: writeCreate, data: hashCreate } = useWriteContract();
-  const { isLoading: isConfirmingCreate, isSuccess: isConfirmedCreate } =
-    useWaitForTransactionReceipt({ hash: hashCreate });
+  useEffect(() => {
+    const error = approveError || confirmApproveError;
+    if (error) {
+      console.error("Approve error:", error);
+      toast.error("Error al aprobar cUSD");
+      setStep("idle");
+    }
+  }, [approveError, confirmApproveError]);
 
   // Si approve es exitoso, pasamos al paso 2
   if (isConfirmedApprove && step === "approving") {

@@ -7,6 +7,7 @@ import { parseUnits, formatUnits } from "viem";
 import { QuadraticTippingABI, ERC20ABI } from "@/lib/abi";
 import Link from "next/link";
 import { sdk } from "@farcaster/frame-sdk";
+import { toast } from "react-hot-toast";
 
 const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS as `0x${string}`;
 const USDC_ADDRESS = process.env.NEXT_PUBLIC_USDC_ADDRESS as `0x${string}` || "0x01C5C0122039549AD1493B8220cABEdD739BC44E";
@@ -45,8 +46,21 @@ export default function TipPage() {
     const { writeContract: approve, data: approveHash } = useWriteContract();
     const { isLoading: isApproving, isSuccess: isApproveSuccess } = useWaitForTransactionReceipt({ hash: approveHash });
 
-    const { writeContract: tip, data: tipHash } = useWriteContract();
-    const { isLoading: isTipping, isSuccess: isTipSuccess } = useWaitForTransactionReceipt({ hash: tipHash });
+    const { writeContract: tip, data: tipHash, error: tipError } = useWriteContract();
+    const { isLoading: isTipping, isSuccess: isTipSuccess, error: confirmError } = useWaitForTransactionReceipt({ hash: tipHash });
+
+    useEffect(() => {
+        const error = tipError || confirmError;
+        if (error) {
+            console.error("Tip error:", error);
+            if (error.message?.includes("Round not active")) {
+                toast.error("La ronda no esta activa", { duration: 4000 });
+            } else {
+                toast.error("Error al enviar el tip");
+            }
+            setStep("input");
+        }
+    }, [tipError, confirmError]);
 
     useEffect(() => {
         if (isApproveSuccess && step === "approving") {
