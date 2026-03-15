@@ -55,6 +55,8 @@ export default function TipPage() {
             console.error("Tip error:", error);
             if (error.message?.includes("Round not active")) {
                 toast.error("La ronda no esta activa", { duration: 4000 });
+            } else if (error.message?.includes("insufficient funds")) {
+                toast.error("Saldo insuficiente para completar la transacción");
             } else {
                 toast.error("Error al enviar el tip");
             }
@@ -63,6 +65,7 @@ export default function TipPage() {
     }, [tipError, confirmError]);
 
     useEffect(() => {
+        // Trigger tip ONLY when approve receipt is confirmed
         if (isApproveSuccess && step === "approving") {
             setStep("tipping");
             const amtStr = isCustom && customAmount ? customAmount : amount.toString();
@@ -72,7 +75,6 @@ export default function TipPage() {
                 functionName: "tip",
                 args: [activeRoundId!, creatorAddress, parseUnits(amtStr, 18)],
             });
-
         }
     }, [isApproveSuccess, step, isCustom, customAmount, amount, activeRoundId, creatorAddress, tip]);
 
@@ -82,6 +84,7 @@ export default function TipPage() {
             refetchCreator();
         }
     }, [isTipSuccess, step, refetchCreator]);
+
 
     // Check if current user is verified on-chain
     const { data: isVerifiedHuman } = useReadContract({
@@ -122,28 +125,33 @@ export default function TipPage() {
 
     if (creatorInfo && tipAmountNum > 0) {
         // Celo cUSD (18 decimals)
-        const tipAmountWei = tipAmountNum * 1e18;
-        const currentSqrtSum = Number(creatorInfo.sqrtSum); // scale e9 (sqrt of 1e18)
-        const tipSqrt = Math.sqrt(tipAmountWei);            // scale e9
+        const tipAmountWei = parseUnits(tipAmountNum.toString(), 18);
+        const currentSqrtSum = BigInt(creatorInfo.sqrtSum); // scale e9 (sqrt of 1e18)
+        
+        // Math.sqrt for BigInt is not native, we convert to Number only for sqrt then back
+        // 1e18 wei -> sqrt is 1e9. 
+        // tipSqrt = sqrt(tipAmountWei)
+        const tipSqrt = BigInt(Math.floor(Math.sqrt(Number(tipAmountWei))));
 
         const newSqrtSum = currentSqrtSum + tipSqrt;
         const newSquaredSum = newSqrtSum * newSqrtSum;      // scale e18
-        const currentTotalTips = Number(creatorInfo.totalTips); // scale e18
+        const currentTotalTips = BigInt(creatorInfo.totalTips); // scale e18
         const newTotalTips = currentTotalTips + tipAmountWei;
 
-        let newMatching = 0;
+        let newMatching = 0n;
         if (newSquaredSum > newTotalTips) {
             newMatching = newSquaredSum - newTotalTips;       // scale e18
         }
 
-        let currentMatching = 0;
+        let currentMatching = 0n;
         const currentSquaredSum = currentSqrtSum * currentSqrtSum;
         if (currentSquaredSum > currentTotalTips) {
             currentMatching = currentSquaredSum - currentTotalTips;
         }
 
-        estimatedMatchDiff = (newMatching - currentMatching) / 1e18;
+        estimatedMatchDiff = Number(newMatching - currentMatching) / 1e18;
     }
+
 
 
     if (step === "success") {
