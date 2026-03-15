@@ -1,17 +1,34 @@
 {
     "accountAssociation": {
-        "header": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9",
-        "payload": "eyJpZCI6MX0",
-        "signature": "dummy-signature-for-development"
+        "header": "eyJmaWQiOjkxNTIsInR5cGUiOiJjdXN0b2R5Iiwia2V5IjoiMHgwMmVmNzkwRGQ3OTkzQTM1ZkQ4NDdDMDUzRURkQUU5NDBEMDU1NTk2In0",
+        "payload": "eyJkb21haW4iOiJkb25hY3VhZHJhdGljby13ZWIudmVyY2VsLmFwcCJ9",
+        "signature": "MHgxMGQwZGU4ZGYwZDUwZTdmMGIxN2YxMTU2NDI1MjRmZTY0MTUyZGU4ZGU1MWU0MThiYjU4ZjVmZmQxYjRjNDBiNGVlZTRhNDcwNmVmNjhlMzQ0ZGQ5MDBkYmQyMmNlMmVlZGY5ZGQ0N2JlNWRmNzMwYzUxNjE4OWVjZDJjY2Y0MDFj"
     },
-    "frame": {
+    "miniapp": {
         "version": "1",
         "name": "DonaCuadratico",
         "iconUrl": "https://donacuadratico-web.vercel.app/icon.png",
+        "splashImageUrl": "https://donacuadratico-web.vercel.app/opengraph-image.png",
+        "splashBackgroundColor": "#0a0a0f",
         "homeUrl": "https://donacuadratico-web.vercel.app",
-        "imageUrl": "https://donacuadratico-web.vercel.app/api/og",
-        "buttonTitle": "Enviar donación",
-        "splashImageUrl": "https://donacuadratico-web.vercel.app/splash.png",
-        "splashBackgroundColor": "#0a0a0f"
+        "castShareUrl": "https://donacuadratico-web.vercel.app",
+        "webhookUrl": "https://donacuadratico-web.vercel.app/api/webhook",
+        "subtitle": "Tipping Cuadrático en Celo",
+        "description": "Multiplica el impacto de tus propinas usando financiamiento cuadrático.",
+        "screenshotUrls": [
+            "https://donacuadratico-web.vercel.app/opengraph-image.png"
+        ],
+        "primaryCategory": "social",
+        "tags": [
+            "tip",
+            "quadratic",
+            "celo",
+            "farcaster"
+        ],
+        "heroImageUrl": "https://donacuadratico-web.vercel.app/opengraph-image.png",
+        "tagline": "Multiplica tu impacto",
+        "ogTitle": "DonaCuadratico",
+        "ogDescription": "Quadratic Tipping on Celo Mainnet.",
+        "ogImageUrl": "https://donacuadratico-web.vercel.app/opengraph-image.png"
     }
 }
