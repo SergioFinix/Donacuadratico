@@ -70,8 +70,9 @@ export default function TipPage() {
                 address: CONTRACT_ADDRESS,
                 abi: QuadraticTippingABI,
                 functionName: "tip",
-                args: [activeRoundId!, creatorAddress, parseUnits(amtStr, 6)],
+                args: [activeRoundId!, creatorAddress, parseUnits(amtStr, 18)],
             });
+
         }
     }, [isApproveSuccess, step, isCustom, customAmount, amount, activeRoundId, creatorAddress, tip]);
 
@@ -82,8 +83,17 @@ export default function TipPage() {
         }
     }, [isTipSuccess, step, refetchCreator]);
 
+    // Check if current user is verified on-chain
+    const { data: isVerifiedHuman } = useReadContract({
+        address: CONTRACT_ADDRESS,
+        abi: QuadraticTippingABI,
+        functionName: "isVerifiedHuman",
+        args: [address!],
+        query: { enabled: !!address }
+    });
+
     const handleTipSubmit = () => {
-        if (!activeRoundId) return;
+        if (!activeRoundId || !isVerifiedHuman) return;
         const amtStr = isCustom && customAmount ? customAmount : amount.toString();
         if (Number(amtStr) <= 0) return;
 
@@ -92,16 +102,18 @@ export default function TipPage() {
             address: USDC_ADDRESS,
             abi: ERC20ABI,
             functionName: "approve",
-            args: [CONTRACT_ADDRESS, parseUnits(amtStr, 6)],
+            args: [CONTRACT_ADDRESS, parseUnits(amtStr, 18)],
         });
+
     };
 
     const handleShareCast = () => {
         const amtStr = isCustom && customAmount ? customAmount : amount.toString();
-        const estTotalMatchStr = estimatedMatchDiff > 0 ? formatUnits(BigInt(Math.floor(estimatedMatchDiff * 1e6).toString()), 6) : "0";
+        const estTotalMatchStr = estimatedMatchDiff > 0 ? formatUnits(BigInt(Math.floor(estimatedMatchDiff * 1e18).toString()), 18) : "0";
 
         sdk.actions.openUrl(`https://warpcast.com/~/compose?text=Acabo de enviar un tip de $${amtStr} en DonaCuadratico! 🎯 Mi tip generará ~$${parseFloat(estTotalMatchStr).toFixed(2)} de matching cuadrático.&embeds[]=https://DonaCuadratico.xyz`);
     };
+
 
     // Preview Calculation
     // We need to simulate the math: new_matching = (sqrtSum_actual + sqrt(amount))^2 - (totalTips + amount)
@@ -109,20 +121,19 @@ export default function TipPage() {
     const tipAmountNum = isCustom ? Number(customAmount) : amount;
 
     if (creatorInfo && tipAmountNum > 0) {
-        // Math.sqrt receives scale 1e6, returns scale 1e3.
-        // So 1 USDC = 1 = 1e6 wei. sqrt(1e6) = 1e3.
-        const tipAmountWei = tipAmountNum * 1e6;
-        const currentSqrtSum = Number(creatorInfo.sqrtSum); // scale e3
-        const tipSqrt = Math.sqrt(tipAmountWei);            // scale e3 
+        // Celo cUSD (18 decimals)
+        const tipAmountWei = tipAmountNum * 1e18;
+        const currentSqrtSum = Number(creatorInfo.sqrtSum); // scale e9 (sqrt of 1e18)
+        const tipSqrt = Math.sqrt(tipAmountWei);            // scale e9
 
         const newSqrtSum = currentSqrtSum + tipSqrt;
-        const newSquaredSum = newSqrtSum * newSqrtSum;      // scale e6
-        const currentTotalTips = Number(creatorInfo.totalTips); // scale e6
+        const newSquaredSum = newSqrtSum * newSqrtSum;      // scale e18
+        const currentTotalTips = Number(creatorInfo.totalTips); // scale e18
         const newTotalTips = currentTotalTips + tipAmountWei;
 
         let newMatching = 0;
         if (newSquaredSum > newTotalTips) {
-            newMatching = newSquaredSum - newTotalTips;       // scale e6
+            newMatching = newSquaredSum - newTotalTips;       // scale e18
         }
 
         let currentMatching = 0;
@@ -131,8 +142,9 @@ export default function TipPage() {
             currentMatching = currentSquaredSum - currentTotalTips;
         }
 
-        estimatedMatchDiff = (newMatching - currentMatching) / 1e6;
+        estimatedMatchDiff = (newMatching - currentMatching) / 1e18;
     }
+
 
     if (step === "success") {
         return (
@@ -179,9 +191,10 @@ export default function TipPage() {
                         <div className="text-center">
                             <p className="text-sm text-zinc-500">Tips Obtenidos</p>
                             <p className="font-bold text-[#10b981]">
-                                ${creatorInfo ? parseFloat(formatUnits(creatorInfo.totalTips, 6)).toFixed(2) : "0.00"}
+                                ${creatorInfo ? parseFloat(formatUnits(creatorInfo.totalTips, 18)).toFixed(2) : "0.00"}
                             </p>
                         </div>
+
                         <div className="w-px h-8 bg-white/10" />
                         <div className="text-center">
                             <p className="text-sm text-zinc-500">Tippers</p>
@@ -192,8 +205,19 @@ export default function TipPage() {
                     </div>
                 </div>
 
+                {/* Verification Guard Message */}
+                {address && isVerifiedHuman === false && (
+                    <div className="p-4 bg-orange-500/10 border border-orange-500/30 rounded-2xl flex items-center gap-3">
+                        <span className="text-xl">⚠️</span>
+                        <div>
+                            <p className="text-orange-400 text-sm font-bold">Verificación Requerida</p>
+                            <p className="text-zinc-500 text-[10px]">Debes verificar tu humanidad en la página principal para poder enviar un tip.</p>
+                        </div>
+                    </div>
+                )}
+
                 {/* Tip Selector */}
-                <div className="space-y-4">
+                <div className={`space-y-4 ${isVerifiedHuman === false ? "opacity-40 grayscale pointer-events-none" : ""}`}>
                     <h3 className="text-lg font-bold">Selecciona tu Tip (USDC)</h3>
 
                     <div className="grid grid-cols-4 gap-2">
@@ -246,13 +270,14 @@ export default function TipPage() {
                 {/* Submit */}
                 <button
                     onClick={handleTipSubmit}
-                    disabled={step !== "input" || !activeRoundId || !address}
-                    className={`w-full py-4 rounded-xl font-black text-lg transition-all shadow-xl shadow-[#10b981]/20 ${step !== "input" ? "bg-zinc-700 text-zinc-400 cursor-not-allowed" : "bg-[#10b981] text-black hover:bg-[#0ea5e9]/90 hover:shadow-[#0ea5e9]/30"
+                    disabled={step !== "input" || !activeRoundId || !address || isVerifiedHuman === false}
+                    className={`w-full py-4 rounded-xl font-black text-lg transition-all shadow-xl shadow-[#10b981]/20 ${step !== "input" || isVerifiedHuman === false ? "bg-zinc-700 text-zinc-400 cursor-not-allowed" : "bg-[#10b981] text-black hover:bg-[#0ea5e9]/90 hover:shadow-[#0ea5e9]/30"
                         }`}
                 >
-                    {step === "approving" ? "Aprobando USDC..." : step === "tipping" ? "Enviando Tip..." : "Confirmar Tip"}
+                    {isVerifiedHuman === false ? "Verificación Requerida ✋" : step === "approving" ? "Aprobando USDC..." : step === "tipping" ? "Enviando Tip..." : "Confirmar Tip"}
                 </button>
             </div>
         </div>
     );
 }
+
