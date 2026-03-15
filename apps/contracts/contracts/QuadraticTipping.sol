@@ -185,54 +185,60 @@ contract QuadraticTipping is Ownable, ReentrancyGuard {
     }
 
     function finalizeRound(uint256 _roundId) external nonReentrant {
-        Round storage round = rounds[_roundId];
-        require(round.id != 0, "Round does not exist");
-        require(block.timestamp > round.endTime, "Round still active");
-        require(!round.finalized, "Already finalized");
+        Round storage round = rounds[_roundId]; //obtiene la informacion de la ronda
+        require(round.id != 0, "Round does not exist"); //valida que la ronda exista
+        require(block.timestamp > round.endTime, "Round still active"); //valida que la ronda no este activa
+        require(!round.finalized, "Already finalized"); //valida que la ronda no este finalizada
 
-        round.finalized = true;
+        round.finalized = true; //marca la ronda como finalizada
 
-        uint256 totalMatchingRequired = 0;
+        uint256 totalMatchingRequired = 0; //inicializa el total de matching requerido
         uint256[] memory estimatedMatches = new uint256[](
             round.creators.length
-        );
+        ); //crea un array para almacenar el matching estimado para cada creador
 
         for (uint256 i = 0; i < round.creators.length; i++) {
-            address creator = round.creators[i];
-            CreatorInfo storage info = creatorsInfo[_roundId][creator];
+            //itera sobre cada creador
+            address creator = round.creators[i]; //obtiene la direccion del creador
+            CreatorInfo storage info = creatorsInfo[_roundId][creator]; //obtiene la informacion del creador
 
-            uint256 squaredSum = info.sqrtSum * info.sqrtSum;
+            uint256 squaredSum = info.sqrtSum * info.sqrtSum; //calcula el cuadrado de la raiz cuadrada de los tips
 
             if (squaredSum > info.totalTips) {
-                estimatedMatches[i] = squaredSum - info.totalTips;
-                totalMatchingRequired += estimatedMatches[i];
+                //valida que el cuadrado de la raiz cuadrada de los tips sea mayor al total de tips
+                estimatedMatches[i] = squaredSum - info.totalTips; //calcula el matching estimado para cada creador
+                totalMatchingRequired += estimatedMatches[i]; //suma el matching estimado al total de matching requerido
             } else {
-                estimatedMatches[i] = 0;
+                estimatedMatches[i] = 0; //si el cuadrado de la raiz cuadrada de los tips es menor o igual al total de tips, el matching estimado es 0
             }
         }
 
-        uint256 matchingPool = round.matchingPool;
+        uint256 matchingPool = round.matchingPool; //obtiene el matching pool
 
         for (uint256 i = 0; i < round.creators.length; i++) {
-            address creator = round.creators[i];
-            CreatorInfo storage info = creatorsInfo[_roundId][creator];
+            //itera sobre cada creador
+            address creator = round.creators[i]; //obtiene la direccion del creador
+            CreatorInfo storage info = creatorsInfo[_roundId][creator]; //obtiene la informacion del creador
 
-            uint256 finalMatching = 0;
+            uint256 finalMatching = 0; //inicializa el matching final
             if (totalMatchingRequired > 0) {
+                //valida que el total de matching requerido sea mayor a 0
                 if (totalMatchingRequired > matchingPool) {
+                    //valida que el total de matching requerido sea mayor al matching pool
                     finalMatching =
                         (estimatedMatches[i] * matchingPool) /
-                        totalMatchingRequired;
+                        totalMatchingRequired; //calcula el matching final para cada creador
                 } else {
-                    finalMatching = estimatedMatches[i];
+                    finalMatching = estimatedMatches[i]; //si el total de matching requerido es menor o igual al matching pool, el matching final es el matching estimado
                 }
             }
 
-            info.matchingAmount = finalMatching;
+            info.matchingAmount = finalMatching; //establece el matching final para cada creador
 
-            uint256 totalPayout = info.totalTips + finalMatching;
+            uint256 totalPayout = info.totalTips + finalMatching; //calcula el pago total para cada creador
             if (totalPayout > 0) {
-                usdc.safeTransfer(creator, totalPayout);
+                //valida que el pago total sea mayor a 0
+                usdc.safeTransfer(creator, totalPayout); //transfiere el pago total al creador
             }
 
             emit FundsDistributed(

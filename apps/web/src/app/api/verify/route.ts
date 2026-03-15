@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createPublicClient, createWalletClient, http } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
-import { celoSepolia } from 'viem/chains';
+import { celo } from 'viem/chains';
 
 const contractAddress = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS as `0x${string}`;
 
@@ -38,7 +38,7 @@ export async function POST(req: Request) {
             const account = privateKeyToAccount(privateKey as `0x${string}`);
 
             const publicClient = createPublicClient({
-                chain: celoSepolia,
+                chain: celo,
                 transport: http()
             });
 
@@ -53,7 +53,7 @@ export async function POST(req: Request) {
             if (!isVerified) {
                 const walletClient = createWalletClient({
                     account,
-                    chain: celoSepolia,
+                    chain: celo,
                     transport: http()
                 });
 

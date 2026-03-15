@@ -1,15 +1,16 @@
 # DonaCuadratico 🎯 (QuadTip)
 
-**Tipping Cuadrático para Farcaster a través de Celo.**
+**Tipping Cuadrático para Farcaster a través de Celo Mainnet.**
 
 DonaCuadratico es una Mini App de Farcaster diseñada para revolucionar las propinas y donaciones a creadores de contenido, aprovechando el poder del **Fondeo Cuadrático (Quadratic Funding)** directamente dentro del feed social. Construida sobre la blockchain de **Celo**, permite a los usuarios enviar micro-propinas en `cUSD` que desbloquean geométricamente fondos de emparejamiento (matching pools), multiplicando el impacto del apoyo de la comunidad.
 
 ## 🌟 Puntos Clave del Hackathon
 
-- **Nativo de Celo**: Completamente desplegado en Celo Sepolia, utilizando `cUSD` para micro-transacciones estables, con comisiones muy bajas e increíblemente rápidas.
-- **Farcaster Mini App**: Farcaster Frame totalmente compatible que integra `@farcaster/frame-sdk` para una experiencia social integrada perfecta. Cuenta con generación dinámica de imágenes OpenGraph y un ciclo viral de compartir mediante Casts.
-- **Resistencia Sybil con Human Passport**: Integrado con `@human.tech/passport-embed`. Tanto los creadores como los donantes deben demostrar su humanidad (Score $\geq$ 20) para participar, asegurando que la matemática cuadrática esté protegida contra ataques Sybil.
-- **Simulación Matemática en Tiempo Real**: El frontend calcula y proyecta matemáticamente en vivo el match cuadrático $`(\sum \sqrt{tips})^2`$ mientras el usuario elige el monto de su donación.
+- **Nativo de Celo**: Desplegado en **Celo Mainnet**, utilizando `cUSD` para micro-transacciones estables, con comisiones casi inexistentes y máxima velocidad.
+- **Farcaster Mini App**: Farcaster Frame totalmente compatible que integra `@farcaster/frame-sdk` para una experiencia social integrada perfecta.
+- **Resistencia Sybil con Human Passport**: Integrado con `@human.tech/passport-embed`. Tanto los creadores como los donantes deben demostrar su humanidad (Score $\geq$ 0.5) para participar, asegurando que la matemática cuadrática esté protegida contra ataques Sybil.
+- **Simulación Matemática en Tiempo Real**: El frontend calcula y proyecta el match cuadrático $`(\sum \sqrt{tips})^2`$ en vivo.
+- **Admin Panel Avanzado**: El dueño del contrato puede inyectar fondos al matching pool en tiempo real y consultar el historial detallado de donantes por creador.
 
 ## 🚀 Cómo Funciona (El Flujo)
 
@@ -28,9 +29,9 @@ DonaCuadratico es una Mini App de Farcaster diseñada para revolucionar las prop
 
 ## 🔗 Despliegue del Smart Contract
 
-- **Red**: Celo Sepolia Testnet (Chain ID: 11142220)
-- **Contrato QuadraticTipping**: `0x6A1A368162cE28f94E33Dbc72C4c82cA8A8476E6`
-- **Token cUSD (Testnet)**: `0x874069Fa1Eb16D44d622F2e0Ca25eeA172369bC1`
+- **Red**: Celo Mainnet (Chain ID: 42220)
+- **Contrato QuadraticTipping**: `0x9a8d17192091c13780eBEC566329EC284Efbf575`
+- **Token cUSD (Mainnet)**: `0x765DE816845861e75A25fCA122bb6898B8B1282a`
 
 ## 💻 Guía de Inicio (Desarrollo Local)
 
@@ -53,6 +54,6 @@ Abre [http://localhost:3000](http://localhost:3000) para ver la aplicación en t
 
 ### 4. Comandos del Smart Contract (en `apps/contracts`)
 - Compilar contratos: `npx hardhat compile`
-- Desplegar en Celo Sepolia: `npx hardhat ignition deploy ignition/modules/QuadraticTipping.ts --network celo-sepolia`
+- Desplegar en Celo Mainnet: `npx hardhat ignition deploy ignition/modules/QuadraticTipping.ts --network celo --strategy basic`
 
 ---
