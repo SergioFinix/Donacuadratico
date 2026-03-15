@@ -3,28 +3,17 @@
 import { farcasterMiniApp } from "@farcaster/miniapp-wagmi-connector";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactNode, useEffect } from "react";
-import { WagmiProvider, createConfig, http, injected, useConnect } from "wagmi";
-import { walletConnect } from "wagmi/connectors";
-import { celo, celoSepolia } from "wagmi/chains";
+import { WagmiProvider, createConfig, http, useConnect } from "wagmi";
+import { celo } from "wagmi/chains";
 
 const config = createConfig({
   ssr: true,
-  chains: [celo, celoSepolia],
+  chains: [celo],
   connectors: [
-    farcasterMiniApp(), // [0] — producción: MiniApp de Farcaster
-    injected(),         // [1] — desarrollo: Rabby, MetaMask, etc.
-    ...(typeof window !== "undefined"
-      ? [
-          walletConnect({
-            projectId: process.env.NEXT_PUBLIC_WC_PROJECT_ID || "b58098c437bb96825dd5db63de70f7be", // Fallback público genérico para testing
-            showQrModal: true,
-          }),           // [2] — móvil: Fallback para Farcaster Mobile App
-        ]
-      : []),
+    farcasterMiniApp(), // Único connector permitido: MiniApp de Farcaster
   ],
   transports: {
     [celo.id]: http(),
-    [celoSepolia.id]: http(),
   },
 });
 

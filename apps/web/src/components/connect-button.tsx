@@ -1,7 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useAccount, useConnect, useDisconnect } from "wagmi";
+import { useAccount, useDisconnect } from "wagmi";
 
 /**
  * Botón de wallet universal:
@@ -10,21 +9,7 @@ import { useAccount, useConnect, useDisconnect } from "wagmi";
  */
 export function WalletConnectButton() {
   const { address, isConnected } = useAccount();
-  const { connect, connectors, isPending } = useConnect();
   const { disconnect } = useDisconnect();
-  const [showExternal, setShowExternal] = useState(false);
-
-  const [externalConnector, setExternalConnector] = useState<any>(null);
-
-  useEffect(() => {
-    // Si el navegador tiene una extensión instalada (window.ethereum existe), usamos injected
-    // Si es un webview móvil (como Farcaster app), usamos walletConnect para abrir el modal
-    const hasInjected = typeof window !== "undefined" && !!window.ethereum;
-    const connectorId = hasInjected ? "injected" : "walletConnect";
-    
-    const connector = connectors.find((c) => c.id === connectorId) || connectors.find((c) => c.id === "walletConnect");
-    setExternalConnector(connector);
-  }, [connectors]);
 
   // --- CONECTADO ---
   if (isConnected && address) {
@@ -34,16 +19,6 @@ export function WalletConnectButton() {
         <div className="px-3 py-1.5 rounded-full bg-zinc-800 border border-white/10 text-xs font-mono text-zinc-300">
           {address.slice(0, 6)}…{address.slice(-4)}
         </div>
-
-        {/* Wallet externa */}
-        <button
-          onClick={() => externalConnector && connect({ connector: externalConnector })}
-          disabled={!externalConnector || isPending}
-          title="Cambiar a wallet externa (Rabby/MetaMask/WalletConnect)"
-          className="px-2 py-1.5 rounded-full bg-zinc-800 border border-white/10 text-xs text-zinc-400 hover:text-[#10b981] hover:border-[#10b981]/40 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-        >
-          🔑
-        </button>
 
         {/* Desconectar */}
         <button
@@ -57,14 +32,5 @@ export function WalletConnectButton() {
     );
   }
 
-  // --- NO CONECTADO (browser / Farcaster sin auto-connect aún) ---
-  return (
-    <button
-      onClick={() => externalConnector && connect({ connector: externalConnector })}
-      disabled={!externalConnector || isPending}
-      className="px-4 py-1.5 rounded-full bg-[#10b981]/10 border border-[#10b981]/30 text-xs font-semibold text-[#10b981] hover:bg-[#10b981]/20 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-    >
-      {isPending ? "Conectando…" : externalConnector ? "Conectar Wallet" : "Sin wallet detectada"}
-    </button>
-  );
+  return null;
 }

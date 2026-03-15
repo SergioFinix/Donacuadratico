@@ -34,21 +34,11 @@ export function WalletGate({ children }: WalletGateProps) {
   const { isConnected } = useAccount();
   const { connect, connectors, isPending } = useConnect();
 
-  const [externalConnector, setExternalConnector] = useState<any>(null);
-
-  useEffect(() => {
-    const hasInjected = typeof window !== "undefined" && !!window.ethereum;
-    const connectorId = hasInjected ? "injected" : "walletConnect";
-    
-    const connector = connectors.find((c) => c.id === connectorId) || connectors.find((c) => c.id === "walletConnect");
-    setExternalConnector(connector);
-  }, [connectors]);
+  // farcasterMiniApp auto-conecta via AutoConnect, pero por si acaso:
+  const farcasterConnector = connectors.find((c) => c.id === "farcaster");
 
   // Si ya hay wallet conectada → mostrar la app principal
   if (isConnected) return <>{children}</>;
-
-  // farcasterMiniApp auto-conecta via AutoConnect, pero por si acaso:
-  const farcasterConnector = connectors.find((c) => c.id === "farcaster");
 
   return (
     <div className="min-h-screen bg-[#0a0a0f] text-white flex flex-col items-center justify-center px-4 pb-16">
@@ -98,19 +88,8 @@ export function WalletGate({ children }: WalletGateProps) {
           </button>
         )}
 
-        {/* Wallet externa (Rabby, MetaMask, WalletConnect) */}
-        {externalConnector && (
-          <button
-            onClick={() => connect({ connector: externalConnector })}
-            disabled={isPending}
-            className="w-full py-3.5 rounded-2xl bg-zinc-800 border border-white/10 text-white font-bold text-sm hover:bg-zinc-700 transition-colors disabled:opacity-50"
-          >
-            {isPending ? "Conectando…" : "🔑  Conectar wallet externa"}
-          </button>
-        )}
-
-        {!farcasterConnector && !externalConnector && (
-          <p className="text-red-400 text-sm">No se detectó ninguna wallet. Abre la app desde Warpcast o instala Rabby.</p>
+        {!farcasterConnector && (
+          <p className="text-red-400 text-sm">No se detectó la Mini App de Farcaster. Abre este link dentro de Warpcast.</p>
         )}
 
         <p className="text-zinc-600 text-xs pt-2">
