@@ -79,6 +79,7 @@ export default function Home() {
       abi: QuadraticTippingABI,
       functionName: "registerAsCreator",
       args: [activeRoundId],
+      gas: 500000n,
     });
   };
 

@@ -140,6 +140,7 @@ function RoundRow({ roundId }: { roundId: bigint }) {
         abi: QuadraticTippingABI,
         functionName: "fundMatchingPool",
         args: [roundId, amount],
+        gas: 500000n,
       });
     }
   }, [isApproveSuccess, fundingStep, fundingAmount, roundId, fundPool]);
@@ -217,6 +218,7 @@ function RoundRow({ roundId }: { roundId: bigint }) {
                 abi: QuadraticTippingABI,
                 functionName: "finalizeRound",
                 args: [roundId],
+                gas: 500000n,
               })
             }
             disabled={isConfirming}
@@ -354,6 +356,7 @@ export function AdminPanel() {
         abi: ERC20ABI,
         functionName: "approve",
         args: [CONTRACT_ADDRESS, amount],
+        gas: 200000n,
       });
     } else {
       setStep("creating");
@@ -362,6 +365,7 @@ export function AdminPanel() {
         abi: QuadraticTippingABI,
         functionName: "createRound",
         args: [0n, BigInt(durationInput)],
+        gas: 500000n,
       });
     }
   };
@@ -374,6 +378,7 @@ export function AdminPanel() {
       abi: QuadraticTippingABI,
       functionName: "createRound",
       args: [amount, BigInt(durationInput)],
+      gas: 500000n,
     });
   };
 
