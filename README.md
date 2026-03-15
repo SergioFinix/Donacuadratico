@@ -30,7 +30,7 @@ DonaCuadratico es una Mini App de Farcaster diseñada para revolucionar las prop
 ## 🔗 Despliegue del Smart Contract
 
 - **Red**: Celo Mainnet (Chain ID: 42220)
-- **Contrato QuadraticTipping**: `0x9a8d17192091c13780eBEC566329EC284Efbf575`
+- **Contrato QuadraticTipping**: `0x18BB094b44C46066d082659e67133df6BCD78619`
 - **Token cUSD (Mainnet)**: `0x765DE816845861e75A25fCA122bb6898B8B1282a`
 
 ## 💻 Guía de Inicio (Desarrollo Local)
