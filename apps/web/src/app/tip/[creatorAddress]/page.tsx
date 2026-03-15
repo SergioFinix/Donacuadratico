@@ -81,7 +81,7 @@ export default function TipPage() {
                     abi: QuadraticTippingABI,
                     functionName: "tip",
                     args: [BigInt(activeRoundId.toString()), creatorAddress, parseUnits(amtStr, 18)],
-                    gas: 200000n, // Explicit gas limit to avoid estimation errors in some wallets
+                    gas: 500000n, // Significant increase to avoid "out of gas: not enough gas for reentrancy sentry" on Celo
                 });
             }, 2000);
             return () => clearTimeout(timer);
