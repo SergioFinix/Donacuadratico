@@ -22,37 +22,65 @@ export function HumanityVerification() {
     const [lastAttemptFailed, setLastAttemptFailed] = useState(false);
 
     useEffect(() => {
-        const currentScore = data?.score ? Number(data.score) : 0;
+        console.log("[HumanityVerification] data:", data, " isLoading:", isLoading, " error:", error);
+        console.log("[HumanityVerification] address:", address);
         
+        const currentScore = data?.score ? Number(data.score) : 0;
+        console.log("[HumanityVerification] currentScore parsed:", currentScore);
+
         if (currentScore >= 0.05 && address && !verifiedOnChain && !verifying && !lastAttemptFailed) {
-            const verifyOnChain = async () => {
-                setVerifying(true);
-                try {
-                    console.log("[HumanityVerification] Triggering /api/verify for", address);
-                    const res = await fetch("/api/verify", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ address })
-                    });
-                    
-                    if (res.ok) {
-                        setVerifiedOnChain(true);
-                        setLastAttemptFailed(false);
-                    } else {
-                        const errorData = await res.json();
-                        console.error("Verification API error:", errorData);
-                        setLastAttemptFailed(true);
-                    }
-                } catch (error) {
-                    console.error("Verification failed", error);
-                    setLastAttemptFailed(true);
-                } finally {
-                    setVerifying(false);
-                }
-            };
-            verifyOnChain();
+            triggerVerify();
         }
     }, [data?.score, address, verifiedOnChain, verifying, lastAttemptFailed]);
+
+    const triggerVerify = async () => {
+        if (!address) return;
+        setVerifying(true);
+        setLastAttemptFailed(false);
+        try {
+            const { sdk } = await import("@farcaster/frame-sdk");
+            const context = await sdk.context;
+            const fid = context?.user?.fid;
+
+            console.log("[HumanityVerification] Triggering /api/verify for", address, "with FID:", fid);
+            const res = await fetch("/api/verify", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ address, fid })
+            });
+
+            
+            if (res.ok) {
+                setVerifiedOnChain(true);
+                setLastAttemptFailed(false);
+            } else {
+                const errorData = await res.json();
+                console.error("Verification API error:", errorData);
+                setLastAttemptFailed(true);
+            }
+        } catch (error) {
+            console.error("Verification failed", error);
+            setLastAttemptFailed(true);
+        } finally {
+            setVerifying(false);
+        }
+    };
+
+
+    useEffect(() => {
+        const fetchFID = async () => {
+            try {
+                const { sdk } = await import("@farcaster/frame-sdk");
+                const context = await sdk.context;
+                console.log("[HumanityVerification] Farcaster Context FID:", context?.user?.fid);
+            } catch (e) {
+                console.warn("[HumanityVerification] Could not load Farcaster SDK context", e);
+            }
+        };
+        fetchFID();
+    }, []);
+
+    const currentScore = data?.score ? Number(data.score) : 0;
 
     if (!address) return <div className="text-zinc-400 p-4 text-center">Conecta tu wallet para verificar tu humanidad.</div>;
 
@@ -81,14 +109,30 @@ export function HumanityVerification() {
                         <p className="text-red-400 text-xs font-bold uppercase tracking-widest">Error en Registro</p>
                         <p className="text-zinc-500 text-[10px] text-center">Intenta de nuevo. Asegúrate de tener un score positivo en el widget.</p>
                         <button 
-                            onClick={() => setLastAttemptFailed(false)}
+                            onClick={triggerVerify}
                             className="mt-2 px-3 py-1 bg-white/10 hover:bg-white/20 text-white text-[10px] font-bold rounded border border-white/20 transition-colors"
                         >
                             Reintentar Registro
                         </button>
                     </div>
                 )}
+
+                {!verifiedOnChain && !verifying && currentScore >= 0.05 && (
+                    <div className="p-4 bg-[#10b981]/10 border border-[#10b981]/30 rounded-xl flex flex-col items-center gap-3 mb-4">
+                        <div className="text-center">
+                            <p className="text-[#10b981] text-sm font-bold">Score Detectado: {currentScore.toFixed(2)}</p>
+                            <p className="text-zinc-400 text-[10px]">Tu score es suficiente para participar.</p>
+                        </div>
+                        <button 
+                            onClick={triggerVerify}
+                            className="w-full py-2 bg-[#10b981] text-black font-black text-sm rounded-lg hover:shadow-lg hover:shadow-[#10b981]/20 transition-all"
+                        >
+                            Verificar On-Chain Ahora ⚡
+                        </button>
+                    </div>
+                )}
             </div>
+
 
             {/* Main Widget Area */}
             {!verifiedOnChain ? (
