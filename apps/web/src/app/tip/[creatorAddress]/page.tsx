@@ -10,7 +10,9 @@ import { sdk } from "@farcaster/frame-sdk";
 import { toast } from "react-hot-toast";
 
 const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS as `0x${string}`;
-const USDC_ADDRESS = (process.env.NEXT_PUBLIC_USDC_ADDRESS || "0x765DE816845861e75A25fCA122bb6898B8B1282a") as `0x${string}`;
+// Hardcode the correct cUSD address on Celo Mainnet to avoid misconfiguration via Env vars
+const USDC_ADDRESS = "0x765DE816845861e75A25fCA122bb6898B8B1282a" as `0x${string}`;
+
 
 
 const PRESET_AMOUNTS = [0.25, 0.50, 1, 2];
