@@ -12,7 +12,9 @@ import { toast } from "react-hot-toast";
 import { useEffect } from "react";
 
 const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS as `0x${string}`;
-const USDC_ADDRESS = process.env.NEXT_PUBLIC_USDC_ADDRESS as `0x${string}`;
+// Hardcode the correct cUSD address on Celo Mainnet to avoid misconfiguration via Env vars
+const USDC_ADDRESS = "0x765DE816845861e75A25fCA122bb6898B8B1282a" as `0x${string}`;
+
 
 // ─── Subcomponent: Creator row inside expanded round ─────────────────────────
 function CreatorRow({ roundId, creator }: { roundId: bigint; creator: `0x${string}` }) {

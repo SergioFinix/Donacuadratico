@@ -117,7 +117,7 @@ export default function TipPage() {
             abi: ERC20ABI,
             functionName: "approve",
             args: [CONTRACT_ADDRESS, parseUnits(amtStr, 18)],
-            gas: 100000n, // Explicit gas limit for approval
+            gas: 200000n, // Explicit gas limit for approval
         });
 
     };
