@@ -10,7 +10,8 @@ import { sdk } from "@farcaster/frame-sdk";
 import { toast } from "react-hot-toast";
 
 const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS as `0x${string}`;
-const USDC_ADDRESS = process.env.NEXT_PUBLIC_USDC_ADDRESS as `0x${string}` || "0x01C5C0122039549AD1493B8220cABEdD739BC44E";
+const USDC_ADDRESS = (process.env.NEXT_PUBLIC_USDC_ADDRESS || "0x765DE816845861e75A25fCA122bb6898B8B1282a") as `0x${string}`;
+
 
 const PRESET_AMOUNTS = [0.25, 0.50, 1, 2];
 
@@ -38,7 +39,7 @@ export default function TipPage() {
         address: CONTRACT_ADDRESS,
         abi: QuadraticTippingABI,
         functionName: "getCreatorInfo",
-        args: activeRoundId ? [activeRoundId, creatorAddress] : undefined,
+        args: activeRoundId ? [BigInt(activeRoundId.toString()), creatorAddress] : undefined,
         query: { enabled: !!activeRoundId }
     });
 
@@ -66,17 +67,25 @@ export default function TipPage() {
 
     useEffect(() => {
         // Trigger tip ONLY when approve receipt is confirmed
-        if (isApproveSuccess && step === "approving") {
-            setStep("tipping");
-            const amtStr = isCustom && customAmount ? customAmount : amount.toString();
-            tip({
-                address: CONTRACT_ADDRESS,
-                abi: QuadraticTippingABI,
-                functionName: "tip",
-                args: [activeRoundId!, creatorAddress, parseUnits(amtStr, 18)],
-            });
+        if (isApproveSuccess && step === "approving" && activeRoundId) {
+            console.log("[TipPage] Approve success! Waiting 2s for node sync...");
+            const timer = setTimeout(() => {
+                setStep("tipping");
+                const amtStr = isCustom && customAmount ? customAmount : amount.toString();
+                console.log("[TipPage] Sending tip for", amtStr, "to", creatorAddress);
+                
+                tip({
+                    address: CONTRACT_ADDRESS,
+                    abi: QuadraticTippingABI,
+                    functionName: "tip",
+                    args: [BigInt(activeRoundId.toString()), creatorAddress, parseUnits(amtStr, 18)],
+                    gas: 200000n, // Explicit gas limit to avoid estimation errors in some wallets
+                });
+            }, 2000);
+            return () => clearTimeout(timer);
         }
     }, [isApproveSuccess, step, isCustom, customAmount, amount, activeRoundId, creatorAddress, tip]);
+
 
     useEffect(() => {
         if (isTipSuccess && step === "tipping") {
@@ -106,6 +115,7 @@ export default function TipPage() {
             abi: ERC20ABI,
             functionName: "approve",
             args: [CONTRACT_ADDRESS, parseUnits(amtStr, 18)],
+            gas: 100000n, // Explicit gas limit for approval
         });
 
     };

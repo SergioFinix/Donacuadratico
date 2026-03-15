@@ -9,8 +9,6 @@ const Eruda = dynamic(() => import("./eruda-provider").then((c) => c.Eruda), {
 });
 
 export const ErudaProvider = (props: { children: ReactNode }) => {
-  if (env.NEXT_PUBLIC_APP_ENV === "production") {
-    return props.children;
-  }
+  // Siempre habilitado para debugging móvil de tipping
   return <Eruda>{props.children}</Eruda>;
 };
