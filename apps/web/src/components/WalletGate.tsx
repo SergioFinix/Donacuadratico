@@ -34,11 +34,26 @@ export function WalletGate({ children }: WalletGateProps) {
   const { isConnected } = useAccount();
   const { connect, connectors, isPending } = useConnect();
 
-  // farcasterMiniApp auto-conecta via AutoConnect, pero por si acaso:
-  const farcasterConnector = connectors.find((c) => c.id === "farcaster");
+  const [externalConnector, setExternalConnector] = useState<any>(null);
+  const [isMobile, setIsMobile] = useState(true); // Default to mobile/safe
+
+  useEffect(() => {
+    const ua = navigator.userAgent;
+    const mobileMatch = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua);
+    setIsMobile(mobileMatch);
+
+    const hasInjected = typeof window !== "undefined" && !!window.ethereum;
+    const connectorId = hasInjected ? "injected" : "walletConnect";
+    
+    const connector = connectors.find((c) => c.id === connectorId) || connectors.find((c) => c.id === "walletConnect");
+    setExternalConnector(connector);
+  }, [connectors]);
 
   // Si ya hay wallet conectada → mostrar la app principal
   if (isConnected) return <>{children}</>;
+
+  // farcasterMiniApp auto-conecta via AutoConnect, pero por si acaso:
+  const farcasterConnector = connectors.find((c) => c.id === "farcaster");
 
   return (
     <div className="min-h-screen bg-[#0a0a0f] text-white flex flex-col items-center justify-center px-4 pb-16">
@@ -85,6 +100,17 @@ export function WalletGate({ children }: WalletGateProps) {
             className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-[#8b5cf6] to-[#6d3fc9] text-white font-bold text-sm shadow-lg shadow-purple-900/30 hover:opacity-90 transition-opacity disabled:opacity-50"
           >
             {isPending ? "Conectando…" : "🟣  Entrar con Farcaster"}
+          </button>
+        )}
+
+        {/* Wallet externa (Solo en Web/Desktop) */}
+        {externalConnector && !isMobile && (
+          <button
+            onClick={() => connect({ connector: externalConnector })}
+            disabled={isPending}
+            className="w-full py-3.5 rounded-2xl bg-zinc-800 border border-white/10 text-white font-bold text-sm hover:bg-zinc-700 transition-colors disabled:opacity-50"
+          >
+            {isPending ? "Conectando…" : "🔑  Conectar wallet externa"}
           </button>
         )}
 
