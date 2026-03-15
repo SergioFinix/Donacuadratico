@@ -87,7 +87,7 @@ function CreatorRow({ roundId, creator }: { roundId: bigint; creator: `0x${strin
 }
 
 // ─── Subcomponent: One round row ─────────────────────────────────────────────
-function RoundRow({ roundId }: { roundId: bigint }) {
+function RoundRow({ roundId, isAdmin }: { roundId: bigint; isAdmin?: boolean }) {
   const [expanded, setExpanded] = useState(false);
   const { data: round, refetch } = useReadContract({
     address: CONTRACT_ADDRESS,
@@ -212,7 +212,7 @@ function RoundRow({ roundId }: { roundId: bigint }) {
         </span>
 
         {/* Finalize button */}
-        {!round.finalized && isExpired && (
+        {isAdmin && !round.finalized && isExpired && (
           <button
             onClick={() =>
               writeContract({
@@ -231,7 +231,7 @@ function RoundRow({ roundId }: { roundId: bigint }) {
         )}
 
         {/* Fund Input/Button */}
-        {!round.finalized && (
+        {isAdmin && !round.finalized && (
           <div className="flex items-center gap-2 bg-black/20 p-1 rounded-lg border border-white/5">
             <input
               type="number"
@@ -296,7 +296,7 @@ function RoundRow({ roundId }: { roundId: bigint }) {
   );
 }
 
-export function AdminPanel() {
+export function AdminPanel({ isAdmin }: { isAdmin?: boolean }) {
   const [poolInput, setPoolInput] = useState("0");
   const [durationInput, setDurationInput] = useState("604800"); // Default 7 days in seconds
   const [step, setStep] = useState<"idle" | "approving" | "creating_pending" | "creating">("idle");
@@ -388,81 +388,91 @@ export function AdminPanel() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center gap-2 pb-1 border-b border-white/5">
-        <span className="text-lg">⚙️</span>
-        <h2 className="text-lg font-black text-white">Panel de Administración</h2>
-        <span className="ml-auto px-2 py-0.5 rounded-full text-xs font-semibold bg-yellow-400/10 text-yellow-400 border border-yellow-400/20">
-          Owner
-        </span>
+        <span className="text-lg">{isAdmin ? "⚙️" : "📊"}</span>
+        <h2 className="text-lg font-black text-white">
+          {isAdmin ? "Panel de Administración" : "Historial de Rondas"}
+        </h2>
+        {isAdmin ? (
+          <span className="ml-auto px-2 py-0.5 rounded-full text-xs font-semibold bg-yellow-400/10 text-yellow-400 border border-yellow-400/20">
+            Owner
+          </span>
+        ) : (
+          <span className="ml-auto px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-400/10 text-blue-400 border border-blue-400/20">
+            Explorador
+          </span>
+        )}
       </div>
 
       {/* Create Round */}
-      <div className="p-5 bg-zinc-900 border border-white/5 rounded-2xl space-y-4">
-        <h3 className="text-sm font-bold text-zinc-200">Crear Nueva Ronda</h3>
+      {isAdmin && (
+        <div className="p-5 bg-zinc-900 border border-white/5 rounded-2xl space-y-4">
+          <h3 className="text-sm font-bold text-zinc-200">Crear Nueva Ronda</h3>
 
-        <div className="flex gap-3 items-center">
-          <div className="relative flex-1">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 text-sm">$</span>
-            <input
-              type="number"
-              min="0"
-              step="0.01"
-              placeholder="0.00"
-              value={poolInput}
-              onChange={(e) => setPoolInput(e.target.value)}
-              className="w-full pl-7 pr-4 py-2.5 bg-black/50 border border-white/10 rounded-xl text-white text-sm focus:outline-none focus:border-[#10b981]/50 placeholder-zinc-600"
-            />
-          </div>
-          <span className="text-xs text-zinc-500 w-24">matching pool</span>
-        </div>
-
-        <div className="flex gap-3 items-center">
-          <select
-            value={durationInput}
-            onChange={(e) => setDurationInput(e.target.value)}
-            className="flex-1 px-4 py-2.5 bg-black/50 border border-white/10 rounded-xl text-white text-sm focus:outline-none focus:border-[#10b981]/50 appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2224%22%20height%3D%2224%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20stroke%3D%22%2371717a%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E')] bg-[length:16px] bg-[position:calc(100%-12px)_center] bg-no-repeat pr-10"
-          >
-            <option value="600">Prueba rápida (10 minutos)</option>
-            <option value="3600">Corta (1 hora)</option>
-            <option value="86400">Normal (1 día)</option>
-            <option value="259200">Extendida (3 días)</option>
-            <option value="604800">Oficial (7 días)</option>
-          </select>
-          <span className="text-xs text-zinc-500 w-24">duración</span>
-        </div>
-
-        {step === "idle" && (
-          <button
-            onClick={handleCreateRound}
-            disabled={isConfirmingApprove || isConfirmingCreate}
-            className="w-full py-3 rounded-xl bg-gradient-to-r from-[#10b981] to-[#059669] text-black font-bold text-sm hover:opacity-90 transition-opacity disabled:opacity-50"
-          >
-            🚀 Crear Ronda
-          </button>
-        )}
-
-        {(step === "approving" || step === "creating_pending") && (
-          <div className="space-y-2">
-            <div className={`p-3 border rounded-xl text-xs ${step === "creating_pending" ? "bg-[#10b981]/10 border-[#10b981]/30 text-[#10b981]" : "bg-yellow-400/5 border-yellow-400/20 text-yellow-400"}`}>
-              {step === "creating_pending" 
-                ? "✅ cUSD Aprobado. Ahora confirma la creación de la ronda." 
-                : "✅ Paso 1/2: Aprueba el gasto de cUSD en tu wallet. Luego haz clic en \"Confirmar Creación\"."}
+          <div className="flex gap-3 items-center">
+            <div className="relative flex-1">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 text-sm">$</span>
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                placeholder="0.00"
+                value={poolInput}
+                onChange={(e) => setPoolInput(e.target.value)}
+                className="w-full pl-7 pr-4 py-2.5 bg-black/50 border border-white/10 rounded-xl text-white text-sm focus:outline-none focus:border-[#10b981]/50 placeholder-zinc-600"
+              />
             </div>
-            <button
-              onClick={handleCreateAfterApprove}
-              disabled={step === "approving" || isConfirmingApprove || isConfirmingCreate}
-              className="w-full py-3 rounded-xl bg-[#8b5cf6] text-white font-bold text-sm hover:opacity-90 transition-opacity disabled:opacity-50"
-            >
-              {isConfirmingApprove ? "Aprobando cUSD..." : isConfirmingCreate ? "Esperando transacción..." : "✅ Paso 2/2: Confirmar Creación"}
-            </button>
+            <span className="text-xs text-zinc-500 w-24">matching pool</span>
           </div>
-        )}
 
-        {step === "creating" && isConfirmingCreate && (
-          <div className="p-3 bg-[#10b981]/5 border border-[#10b981]/20 rounded-xl text-xs text-[#10b981] text-center">
-            ⏳ Creando ronda en la blockchain…
+          <div className="flex gap-3 items-center">
+            <select
+              value={durationInput}
+              onChange={(e) => setDurationInput(e.target.value)}
+              className="flex-1 px-4 py-2.5 bg-black/50 border border-white/10 rounded-xl text-white text-sm focus:outline-none focus:border-[#10b981]/50 appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2224%22%20height%3D%2224%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20stroke%3D%22%2371717a%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E')] bg-[length:16px] bg-[position:calc(100%-12px)_center] bg-no-repeat pr-10"
+            >
+              <option value="600">Prueba rápida (10 minutos)</option>
+              <option value="3600">Corta (1 hora)</option>
+              <option value="86400">Normal (1 día)</option>
+              <option value="259200">Extendida (3 días)</option>
+              <option value="604800">Oficial (7 días)</option>
+            </select>
+            <span className="text-xs text-zinc-500 w-24">duración</span>
           </div>
-        )}
-      </div>
+
+          {step === "idle" && (
+            <button
+              onClick={handleCreateRound}
+              disabled={isConfirmingApprove || isConfirmingCreate}
+              className="w-full py-3 rounded-xl bg-gradient-to-r from-[#10b981] to-[#059669] text-black font-bold text-sm hover:opacity-90 transition-opacity disabled:opacity-50"
+            >
+              🚀 Crear Ronda
+            </button>
+          )}
+
+          {(step === "approving" || step === "creating_pending") && (
+            <div className="space-y-2">
+              <div className={`p-3 border rounded-xl text-xs ${step === "creating_pending" ? "bg-[#10b981]/10 border-[#10b981]/30 text-[#10b981]" : "bg-yellow-400/5 border-yellow-400/20 text-yellow-400"}`}>
+                {step === "creating_pending" 
+                  ? "✅ cUSD Aprobado. Ahora confirma la creación de la ronda." 
+                  : "✅ Paso 1/2: Aprueba el gasto de cUSD en tu wallet. Luego haz clic en \"Confirmar Creación\"."}
+              </div>
+              <button
+                onClick={handleCreateAfterApprove}
+                disabled={step === "approving" || isConfirmingApprove || isConfirmingCreate}
+                className="w-full py-3 rounded-xl bg-[#8b5cf6] text-white font-bold text-sm hover:opacity-90 transition-opacity disabled:opacity-50"
+              >
+                {isConfirmingApprove ? "Aprobando cUSD..." : isConfirmingCreate ? "Esperando transacción..." : "✅ Paso 2/2: Confirmar Creación"}
+              </button>
+            </div>
+          )}
+
+          {step === "creating" && isConfirmingCreate && (
+            <div className="p-3 bg-[#10b981]/5 border border-[#10b981]/20 rounded-xl text-xs text-[#10b981] text-center">
+              ⏳ Creando ronda en la blockchain…
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Rounds list */}
       <div className="space-y-3">
@@ -479,7 +489,7 @@ export function AdminPanel() {
         ) : (
           <div className="space-y-2">
             {[...roundIds].reverse().map((id) => (
-              <RoundRow key={id.toString()} roundId={id} />
+              <RoundRow key={id.toString()} roundId={id} isAdmin={isAdmin} />
             ))}
           </div>
         )}

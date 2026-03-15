@@ -116,8 +116,8 @@ export default function Home() {
           <p className="text-zinc-400">Quadratic Tipping for Farcaster</p>
         </div>
 
-        {/* Admin Panel — solo visible para el owner del contrato */}
-        {isOwner && <AdminPanel />}
+        {/* Admin/Rounds Panel */}
+        <AdminPanel isAdmin={isOwner} />
 
         {/* Humanity Status */}
         {isConnected && (
