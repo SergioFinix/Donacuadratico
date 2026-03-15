@@ -56,8 +56,8 @@ export default function ResultsPage() {
     let totalTippers = 0;
 
     creators.forEach(c => {
-        totalTips += Number(formatUnits(c.totalTips, 6));
-        totalMatching += Number(formatUnits(c.matchingAmount, 6));
+        totalTips += Number(formatUnits(c.totalTips, 18));
+        totalMatching += Number(formatUnits(c.matchingAmount, 18));
         totalTippers += Number(c.tipperCount);
     });
 
@@ -104,13 +104,13 @@ export default function ResultsPage() {
 
                     <div className="space-y-3">
                         {creators.map((c, idx) => {
-                            const tips = Number(formatUnits(c.totalTips, 6));
-                            const match = Number(formatUnits(c.matchingAmount, 6));
+                            const tips = Number(formatUnits(c.totalTips, 18));
+                            const match = Number(formatUnits(c.matchingAmount, 18));
                             const total = tips + match;
 
                             // Find max total to calculate bar widths
                             const maxTotal = creators.length > 0
-                                ? Number(formatUnits(creators[0].totalTips, 6)) + Number(formatUnits(creators[0].matchingAmount, 6))
+                                ? Number(formatUnits(creators[0].totalTips, 18)) + Number(formatUnits(creators[0].matchingAmount, 18))
                                 : 1;
 
                             const tipsPct = (tips / maxTotal) * 100;
