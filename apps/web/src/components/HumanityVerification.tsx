@@ -27,10 +27,12 @@ export function HumanityVerification() {
 
     useEffect(() => {
         const currentScore = data?.score ? Number(data.score) : 0;
-        if (currentScore >= 0.5 && address && !verifiedOnChain && !verifying) {
+        // Si el score es > 0.05 (muy bajo, para asegurar que el '5' del usuario pase)
+        if (currentScore >= 0.05 && address && !verifiedOnChain && !verifying) {
             const verifyOnChain = async () => {
                 setVerifying(true);
                 try {
+                    console.log("[HumanityVerification] Triggering /api/verify for", address);
                     const res = await fetch("/api/verify", {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
@@ -38,6 +40,9 @@ export function HumanityVerification() {
                     });
                     if (res.ok) {
                         setVerifiedOnChain(true);
+                    } else {
+                        const errorData = await res.json();
+                        console.error("Verification API error:", errorData);
                     }
                 } catch (error) {
                     console.error("Verification failed", error);
@@ -49,9 +54,17 @@ export function HumanityVerification() {
         }
     }, [data?.score, address, verifiedOnChain, verifying]);
 
-    if (!address) return <div className="text-gray-400">Conecta tu wallet para verificar tu humanidad.</div>;
+    if (!address) return <div className="text-zinc-400 p-4 text-center">Conecta tu wallet para verificar tu humanidad.</div>;
 
-    if (verifiedOnChain) return <div className="text-green-500 font-bold px-4 py-2 border border-green-500/30 rounded-lg bg-green-500/10 text-center">¡Humano Verificado! ✅</div>;
+    if (verifying) return (
+        <div className="p-4 bg-zinc-900 border border-blue-500/20 rounded-xl flex flex-col items-center gap-2">
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
+            <p className="text-blue-400 font-bold text-sm">Registrando verificación en Celo...</p>
+            <p className="text-zinc-500 text-xs">Esto puede tardar unos segundos.</p>
+        </div>
+    );
+
+    if (verifiedOnChain) return <div className="text-green-500 font-bold px-4 py-2 border border-green-500/30 rounded-lg bg-green-500/10 text-center">¡Verificación enviada! ✅ <br/><span className="text-[10px] font-normal">Recarga si no se actualiza en unos segundos.</span></div>;
 
     // these are defined above now
 
