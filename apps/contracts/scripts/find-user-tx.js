@@ -15,7 +15,7 @@ async function main() {
       includeTransactions: true
     });
 
-    const userTx = block.transactions.filter(tx => 
+    const userTx = block.transactions.filter(tx =>
       tx.from?.toLowerCase() === userAddress.toLowerCase()
     );
 
